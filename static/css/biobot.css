@@ -1,0 +1,111 @@
+h1 {
+    color: #000;
+    font-weight: bold;
+}
+
+h2 {
+    margin-top: 0px !important;
+    color: #000;
+}
+
+button.eStop {
+    border: none;
+    height: 111px;
+    width: 111px;
+    background-color: transparent;
+    background-image: url('../img/e-stop.png');
+    outline: none;
+}
+
+button.eStop:hover {
+    cursor: pointer;
+    background-image: url('../img/e-stop-hover.png');
+}
+
+.full-width {
+    display:block;
+}
+
+.lb-sm {
+      font-size: 12px;
+}
+
+.lb-md {
+      font-size: 16px;
+      padding-top: 0.4em;
+      padding-right: 0.5em;
+      padding-left: 0.5em;
+      padding-bottom: 0.5em;
+      margin-right: 10px;
+}
+
+.lb-lg {
+      font-size: 20px;
+}
+
+.w50pc {
+    width: 50%
+}
+
+.w75pc {
+    width: 75%
+}
+
+.w100px {
+    width: 100px
+}
+
+.w150px {
+    width: 150px
+}
+
+.deck_img {
+    max-width: 150px;
+    max-height: 150px;
+}
+
+.ib {
+    display: inline-block;
+}
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: pointer;
+    display: block;
+}
+
+.axis path{
+    display: none;
+}
+
+.axis text{
+    font-family: sans-serif;
+    font-size: 10.5px;
+}
+
+.axis line {
+    fill: none;
+    stroke: lightgray;
+    stroke-width: 1px;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke-width: 2px;
+}

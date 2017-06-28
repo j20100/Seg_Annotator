@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block includes %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/resize_img.js') }}"></script>
+{% endblock includes %}
+
+{% block content %}
+    <h1>IVI Annotator Home Page</h1>
+    <img class="img-responsive" id="resize-img" src="{{ url_for('static', filename='img/logoIvi.png') }}" alt="Logo IVI">
+{% endblock content %}

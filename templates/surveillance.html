@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block title %}Dataset{% endblock title %}
+
+{% block includes %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/resize_img.js') }}"></script>
+{% endblock includes %}
+
+{% block content %}
+    <h1>Dataset</h1>
+    <img class="img-responsive img-rounded" id="resize-img" src="http://{{conf.webcam_host}}:{{conf.webcam_port}}/?action=stream" alt="Dataset">
+{% endblock content %}

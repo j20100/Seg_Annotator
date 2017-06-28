@@ -1,0 +1,101 @@
+{# Main IVI Annotator layout page #}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {# Title #}
+        <title>IVI Annotator</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+        {# IVI Icon #}
+        <link rel="shortcut icon" href="{{ url_for('static', filename='img/logoIvi.png') }}">
+
+        {% block includes %}
+            {# Bootstrap CSS files #}
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-theme.css') }}">
+
+            {# Custom CSS #}
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/simple-sidebar.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/biobot.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-dialog.min.css') }}">
+
+            {# Bootstrap JavaScript files #}
+            <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+
+            {# Custom JS #}
+            <script src="{{ url_for('static', filename='js/sidebar_menu.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/eventemitter2.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/roslib.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/bootstrap-dialog.min.js') }}"></script>
+            <script>
+                var ros_host = "{{conf.rosbridge_host}}";
+                var ros_port = "{{conf.rosbridge_port}}";
+            </script>
+            <script src="{{ url_for('static', filename='js/ros_connection.js') }}"></script>
+        {% endblock includes %}
+
+    </head>
+
+    <body style="padding-bottom: 125px;">
+        {# Top of the page menu bar #}
+        <nav class="navbar navbar-default no-margin">
+        {# Brand and toggle get grouped for better mobile display #}
+            <div class="navbar-header fixed-brand">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" id="menu-toggle">
+                    <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
+                </button>
+                <a class="navbar-brand" href="/"><p><img src="{{ url_for('static', filename='img/logoIvi.png') }}" alt="Logo IVI" height="40" width="16"> <span style="color:#000; font-weight: bold;">IVI</span> Annotator</p></a>
+            </div> {# navbar-header#}
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="active"><button class="navbar-toggle collapse in" data-toggle="collapse" id="menu-toggle-2"> <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span></button></li>
+                </ul>
+
+                {# Log in status #}
+                <div class="nav navbar-nav navbar-right container-fluid" style="padding-top:3px">
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{'/login?next=' + request.path}}"><button type="button" class="btn btn-info navbar-btn active">
+                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span> Log in
+                        </button></a>
+                    {% else %}
+                        <span class="label label-primary lb-md">Logged in as {{current_user.get_id()}}</span>
+                        <a href="/logout"><button type="button" class="btn btn-info navbar-btn active">
+                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span> Log out
+                        </button></a>
+                    {% endif %}
+                </div>
+            </div> {# bs-navbar-collapse-1 #}
+        </nav>
+
+        <div id="wrapper">
+            {# Sidebar #}
+            <div id="sidebar-wrapper">
+                <ul class="sidebar-nav nav-pills nav-stacked" id="menu">
+                    {{ format_sidebar('Home', 'home', 'home') }}
+                    {{ format_sidebar('Dataset', 'facetime-video', 'surveillance') }}
+                    {{ format_sidebar('Annotator', 'edit', 'deck_editor') }}
+                    {{ format_sidebar('Logs', 'search', 'logs') }}
+                    {% if current_user.is_authenticated and current_user.is_admin() %}
+                        {{ format_sidebar('Manage Users', 'tasks', 'manage_users') }}
+                        
+
+                    {% endif %}
+                </ul>
+            </div> {# sidebar-wrapper #}
+
+            <div id="page-content-wrapper">
+                <div class="container-fluid row xyz">
+                    {# Page Content #}
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+            {# page-content-wrapper #}
+        </div>
+    </body>
+</html>
