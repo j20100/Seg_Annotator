@@ -1,0 +1,22 @@
+{
+  "labels": [
+    "Void",
+    "Sky",
+    "Building",
+    "Road",
+    "Sidewalk",
+    "Fence",
+    "Vegetation",
+    "Pole",
+    "Car",
+    "Sign",
+    "Pedestrian",
+    "Cyclist"
+  ],
+  "imageURLs": [
+    "static/data/images/*"
+  ],
+  "annotationURLs": [
+    "static/data/annotations/*"
+  ]
+}

@@ -291,6 +291,7 @@ def home():
     return render_template('index.html')
 
 @app.route('/surveillance')
+@login_required
 def surveillance():
     return render_template('surveillance.html')
 
@@ -305,10 +306,10 @@ def protocol_editor():
     labware = json.loads(get_schema('labware'))
     return render_template('protocol_editor.html', labware=labware)
 
-@app.route('/deck_editor')
+@app.route('/annotator')
 @login_required
 def deck_editor():
-    return render_template('deck_editor.html')
+    return render_template('annotator.html')
 
 @app.route('/deck_editor/send/<b64_deck>')
 @login_required
