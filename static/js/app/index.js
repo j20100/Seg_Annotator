@@ -32,7 +32,8 @@ function(Pagination, Viewer, util) {
   }
 
   function render(data, params) {
-    var pagination = new Pagination(data.imageURLs.length, params);
+    var container = document.createElement("div"),
+    pagination = new Pagination(data.imageURLs.length, params);
     document.body.appendChild(pagination.render());
     document.body.appendChild(createLabelOptions(params, data.labels));
     for (var i = pagination.begin(); i < pagination.end(); ++i) {
@@ -47,7 +48,9 @@ function(Pagination, Viewer, util) {
           anchor = document.createElement("a");
       anchor.appendChild(viewer.container);
       anchor.href = util.makeQueryParams({ view: "edit", id: i });
-      document.body.appendChild(anchor);
+      container.className = "edit-top-menu-block";
+      container.appendChild(anchor);
+      document.body.appendChild(container);
     }
   }
 
