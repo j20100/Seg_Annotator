@@ -187,7 +187,20 @@ function(Layer, Annotator, util) {
       }, 1000);
     }
   }
-
+  //  function downloadURI(uri, filename) {
+  //    var anchor = document.createElement("form");
+  //    anchor.action = "http://localhost:5000/uploader";
+  //    anchor.method = "POST"
+  //    anchor.enctype = "multipart/form-data"
+  //    var fileinput = document.createElement("input");
+  //    fileinput.type = filename;
+  //    fileinput.name = "file";
+  //    var fileoutput = document.createElement("input");
+  //    fileoutput.type = "submit";
+  //    anchor.appendChild(fileinput);
+  //    anchor.appendChild(fileoutput);
+  //    document.body.appendChild(anchor);
+  //  }
   // Create the sidebar.
   function createSidebar(params, data, annotator) {
     var container = document.createElement("div"),
@@ -206,8 +219,15 @@ function(Layer, Annotator, util) {
         spacer6 = document.createElement("div"),
         manualParagraph = document.createElement("p"),
         spacer7 = document.createElement("div"),
+        anchor = document.createElement("form"),
         exportButton = document.createElement("input"),
         manualText;
+    var fileData = new FormData();
+    var request = new XMLHttpRequest();
+    //anchor.action = "http://localhost:5000/uploader";
+    //anchor.method = "POST";
+    //anchor.enctype = "multipart/form-data";
+    anchor.appendChild(exportButton);
     exportButton.type = "submit";
     exportButton.value = "export";
     exportButton.className = "edit-sidebar-submit";
@@ -215,7 +235,11 @@ function(Layer, Annotator, util) {
       var filename = (data.annotationURLs) ?
           data.annotationURLs[params.id].split(/[\\/]/).pop() :
           params.id + ".png";
-      downloadURI(annotator.export(), filename);
+      fileData.append("file",annotator.export());
+      fileData.append("filename",filename);
+      request.open("POST", "http://localhost:5000/uploader");
+      request.send(fileData)
+      //downloadURI(annotator.export(), filename);
     });
     spacer1.className = "edit-sidebar-spacer";
     undoButton.className = "edit-sidebar-button";
@@ -436,17 +460,31 @@ function(Layer, Annotator, util) {
     return select;
   }
 
-  // Download trick.
-  function downloadURI(uri, filename) {
-    var anchor = document.createElement("a");
-    anchor.style.display = "none";
-    anchor.target = "_blank"; // Safari doesn't work.
-    anchor.download = filename;
-    anchor.href = uri;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  }
+
+//  function downloadURI(uri, filename) {
+//    var anchor = document.createElement("form");
+//    anchor.action = "http://localhost:5000/uploader";
+//    anchor.method = "POST"
+//    anchor.enctype = "multipart/form-data"
+//    var fileinput = document.createElement("input");
+//    fileinput.type = filename;
+//    fileinput.name = "file";
+//    var fileoutput = document.createElement("input");
+//    fileoutput.type = "submit";
+//    anchor.appendChild(fileinput);
+//    anchor.appendChild(fileoutput);
+//    document.body.appendChild(anchor);
+//  }
+  //function downloadURI(uri, filename) {
+    //var anchor = document.createElement("a");
+    //anchor.style.display = "none";
+    //anchor.target = "_blank"; // Safari doesn't work.
+    //anchor.download = filename;
+    //anchor.href = uri;
+    //document.body.appendChild(anchor);
+    //anchor.click();
+    //document.body.removeChild(anchor);
+  //}
 
   // Entry point.
   function render(data, params) {

@@ -9,9 +9,12 @@ from flask import Flask, Markup, Response, abort, escape, flash, redirect, \
                   render_template, request, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, \
                         login_user, logout_user
+from werkzeug import secure_filename
 from functools import wraps
 from gridfs import GridFS
 from jinja2 import evalcontextfilter
+from binascii import a2b_base64
+
 import json
 import hashlib
 import pandas as pd
@@ -21,6 +24,7 @@ import subprocess
 import threading
 import time
 import uuid
+import urllib.parse
 import webcolors
 
 import biobot_schema
@@ -289,6 +293,33 @@ def ros_stop():
 @app.route('/home')
 def home():
     return render_template('index.html')
+
+@app.route('/uploader', methods = ['GET', 'POST'])
+def uploader_file():
+   if request.method == 'POST':
+        pic = request.form['file']
+        filename = request.form['filename']
+        #f.save(secure_filename(f.filename))
+
+        up = urllib.parse.urlparse(pic)
+        head, data = up.path.split(',', 1)
+        bits = head.split(';')
+        mime_type = bits[0] if bits[0] else 'text/plain'
+        charset, b64 = 'ASCII', False
+        for bit in bits:
+            if bit.startswith('charset='):
+                charset = bit[8:]
+            elif bit == 'base64':
+                b64 = True
+
+        # Do something smart with charset and b64 instead of assuming
+        binary_data = a2b_base64(data)
+
+        # Do something smart with mime_type
+        with open("static/data/annotations/" + filename, 'wb') as f:
+            f.write(binary_data)
+
+        return 'file uploaded successfully'
 
 @app.route('/surveillance')
 @login_required
