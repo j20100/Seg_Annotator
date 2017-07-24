@@ -145,6 +145,19 @@ function (Layer, segmentation, morph) {
   Annotator.prototype.import = function (annotationURL, options) {
     options = options || {};
     var annotator = this;
+
+    //add dynamic annoatations loading
+    var fileURL = new FormData();
+    var request = new XMLHttpRequest();
+    fileURL.append("URL", annotationURL)
+    request.open("POST", "http://localhost:5000/updater");
+    request.send(fileURL)
+    request.onreadystatechange = function(){
+      if (request.readyState == 4)
+        if (request.status == 200)
+          annotationURL = 'requeText';
+    };
+
     this.layers.annotation.load(annotationURL, {
       onload: function () {
         if (options.grayscale)

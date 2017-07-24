@@ -22,6 +22,13 @@ define(['../image/layer'], function(Layer) {
       height: options.height,
       onload: function () { viewer._initializeIfReady(options); }
     });
+    //const fs = require('fs');
+    //var allfiles = fs.readdirSync("static/data/annotations/");
+  //  allfiles.forEach(file => {
+    //  if (file.startswith(annotationURL)) {
+      //  annotationURL = file;
+      //}
+    //})
     this.layers.visualization.load(annotationURL, {
       width: options.width,
       height: options.height,

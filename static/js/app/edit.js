@@ -224,9 +224,6 @@ function(Layer, Annotator, util) {
         manualText;
     var fileData = new FormData();
     var request = new XMLHttpRequest();
-    //anchor.action = "http://localhost:5000/uploader";
-    //anchor.method = "POST";
-    //anchor.enctype = "multipart/form-data";
     anchor.appendChild(exportButton);
     exportButton.type = "submit";
     exportButton.value = "export";
@@ -239,7 +236,6 @@ function(Layer, Annotator, util) {
       fileData.append("filename",filename);
       request.open("POST", "http://localhost:5000/uploader");
       request.send(fileData)
-      //downloadURI(annotator.export(), filename);
     });
     spacer1.className = "edit-sidebar-spacer";
     undoButton.className = "edit-sidebar-button";
