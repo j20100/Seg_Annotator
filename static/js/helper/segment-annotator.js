@@ -147,17 +147,22 @@ function (Layer, segmentation, morph) {
     var annotator = this;
 
     //add dynamic annoatations loading
-    var fileURL = new FormData();
-    var request = new XMLHttpRequest();
-    fileURL.append("URL", annotationURL)
-    request.open("POST", "http://localhost:5000/updater");
-    request.send(fileURL)
-    request.onreadystatechange = function(){
-      if (request.readyState == 4)
-        if (request.status == 200)
-          annotationURL = 'requeText';
-    };
+    //var fileURL = new FormData();
+    //var request = new XMLHttpRequest();
+    //var x = 0;
+    //var newURL = 'no image';
+    //fileURL.append("URL", annotationURL)
+    //request.open("POST", "http://localhost:5000/updater", false);
+    //request.send(fileURL)
+    //request.onreadystatechange = function(){
+  //    if (request.readyState == 4)
+  //      if (request.status == 200)
+  //        newURL = request.responseText;
+  //        x = 1;
+  //  };
 
+    //setTimeout(function(){
+      //if (x == 1) {
     this.layers.annotation.load(annotationURL, {
       onload: function () {
         if (options.grayscale)
@@ -178,7 +183,10 @@ function (Layer, segmentation, morph) {
       },
       onerror: options.onerror
     });
-    return this;
+  return this;
+    //x = 0;
+  //}
+    //}, 5000);
   };
 
   // Export the annotation in data URL.

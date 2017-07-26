@@ -331,7 +331,7 @@ def uploader_file():
                 os.remove( os.path.join( directory, item ) )
 
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        print(timestr)
+        #print(timestr)
         # Do something smart with mime_type
         with open("static/data/annotations/" + filename + timestr, 'wb') as f:
             f.write(binary_data)
@@ -342,8 +342,17 @@ def uploader_file():
 def updater_URL():
    if request.method == 'POST':
         annotURL = request.form["URL"]
-        print(annotURL)
-        return 'blob'
+
+        directory = "static/data/annotations/"
+        test = os.listdir( directory )
+        realURL = "NONE"
+        #print(annotURL[24:])
+        for item in test:
+            if item.startswith(annotURL[24:]):
+                #print(realURL)
+                realURL = item
+                #print(realURL)
+        return "static/data/annotations/" + realURL
 
 @app.route('/surveillance')
 @login_required

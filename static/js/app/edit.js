@@ -493,8 +493,28 @@ function(Layer, Annotator, util) {
           colormap: data.colormap,
           superpixelOptions: { method: "slic", regionSize: 25 },
           onload: function () {
-            if (data.annotationURLs)
-              annotator.import(data.annotationURLs[id]);
+
+            if (data.annotationURLs){
+              var fileURL = new FormData();
+              var request = new XMLHttpRequest();
+              var x = 0;
+              var newURL = 'no image';
+              fileURL.append("URL", data.annotationURLs[id])
+              request.open("POST", "http://localhost:5000/updater");
+              request.send(fileURL)
+              request.onreadystatechange = function(){
+                if (request.readyState == 4)
+                  if (request.status == 200)
+                    newURL = request.responseText;
+                    if (newURL != 'no image')
+                      annotator.import(newURL);
+                    x = 1;
+              };
+            }
+
+
+            //if (data.annotationURLs)
+            //  annotator.import(data.annotationURLs[id]);
             annotator.hide("boundary");
             boundaryFlash();
           },

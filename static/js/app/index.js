@@ -31,13 +31,47 @@ function(Pagination, Viewer, util) {
     return container;
   }
 
+  function wait(ms){
+     var start = new Date().getTime();
+     var end = start;
+     while(end < start + ms) {
+       end = new Date().getTime();
+    }
+  }
+
+  function load_annot(annotationURL) {
+    var fileURL = new FormData();
+    var request = new XMLHttpRequest();
+    var x = 0;
+    var newURL = 'no image';
+    fileURL.append("URL", annotationURL)
+    request.open("POST", "http://localhost:5000/updater", false);
+    request.send(fileURL)
+    if(request.status === 200) {
+        newURL = request.responseText;
+        if (newURL != 'no image'){
+          x = 1;
+          return newURL;
+        }
+    };
+  }
+
   function render(data, params) {
     var container = document.createElement("div"),
     pagination = new Pagination(data.imageURLs.length, params);
     document.body.appendChild(pagination.render());
     document.body.appendChild(createLabelOptions(params, data.labels));
+    var annotURL = "none";
+
     for (var i = pagination.begin(); i < pagination.end(); ++i) {
-      var viewer = new Viewer(data.imageURLs[i], data.annotationURLs[i], {
+
+      annotURL = load_annot(data.annotationURLs[i])
+
+      //while (annotURL == undefined)
+    //    annotURL = load_annot(data.annotationURLs[i])
+    //    wait(100);
+
+      var viewer = new Viewer(data.imageURLs[i], annotURL, {
                                 width: (params.width || 480),
                                 height: (params.height || 320),
                                 colormap: data.colormap,
@@ -51,6 +85,7 @@ function(Pagination, Viewer, util) {
       container.className = "edit-top-menu-block";
       container.appendChild(anchor);
       document.body.appendChild(container);
+
     }
   }
 
