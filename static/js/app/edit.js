@@ -234,7 +234,7 @@ function(Layer, Annotator, util) {
           params.id + ".png";
       fileData.append("file",annotator.export());
       fileData.append("filename",filename);
-      request.open("POST", "http://localhost:5000/uploader");
+      request.open("POST", "http://192.168.3.9:5000/uploader");
       request.send(fileData)
     });
     spacer1.className = "edit-sidebar-spacer";
@@ -500,7 +500,7 @@ function(Layer, Annotator, util) {
               var x = 0;
               var newURL = 'no image';
               fileURL.append("URL", data.annotationURLs[id])
-              request.open("POST", "http://localhost:5000/updater");
+              request.open("POST", "http://192.168.3.9:5000/updater");
               request.send(fileURL)
               request.onreadystatechange = function(){
                 if (request.readyState == 4)
