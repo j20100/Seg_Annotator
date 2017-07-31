@@ -229,7 +229,6 @@ function(Layer, Annotator, util) {
     exportButton.value = "export";
     exportButton.className = "edit-sidebar-submit";
     exportButton.addEventListener("click", function () {
-
       BootstrapDialog.confirm({
           title: 'Export image',
           message: 'Are you sure you wish to export this image?',
@@ -242,6 +241,7 @@ function(Layer, Annotator, util) {
                     params.id + ".png";
                 fileData.append("file",annotator.export());
                 fileData.append("filename",filename);
+                fileData.append("username",username);
                 request.open("POST", "http://192.168.3.9:5000/uploader");
                 request.send(fileData)
               };
@@ -467,7 +467,11 @@ function(Layer, Annotator, util) {
     return select;
   }
 
-
+  function $_GET(q,s) {
+      s = s || window.location.search;
+      var re = new RegExp('&'+q+'=([^&]*)','i');
+      return (s=s.replace(/^\?/,'&').match(re)) ? s=s[1] : s='';
+  }
 //  function downloadURI(uri, filename) {
 //    var anchor = document.createElement("form");
 //    anchor.action = "http://localhost:5000/uploader";

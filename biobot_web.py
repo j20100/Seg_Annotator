@@ -138,8 +138,11 @@ class User(UserMixin):
         self.username = username
         user = biobot.credentials.find_one({'username': username})
         self.admin = user['admin']
+        self.nb_images = user['nb_images']
 
     def get_id(self):
+        print(self.username)
+        print(type(self.username))
         return self.username
 
     def is_admin(self):
@@ -231,6 +234,10 @@ def create_account():
         biobot.credentials.insert_one({'username': username,
                                      'password': hash_password(password),
                                      'active': active,
+                                     'nb_images' : 0,
+                                     'seq_images' : 0,
+                                     'seq_start' : 0,
+                                     'seq_end' : 0,
                                      'admin': admin})
         flash('Account created successfully', 'success')
         return redirect(url_for('login'))
@@ -306,6 +313,8 @@ def home():
 def uploader_file():
    if request.method == 'POST':
         pic = request.form['file']
+        username = request.form['username']
+        print(request.form)
         filename = request.form['filename']
         #f.save(secure_filename(f.filename))
 
@@ -335,6 +344,11 @@ def uploader_file():
         # Do something smart with mime_type
         with open("static/data/annotations/" + filename + timestr, 'wb') as f:
             f.write(binary_data)
+
+        user = biobot.credentials.find_one({'username': username})
+        nb_images = user['nb_images']
+        nb_images = nb_images + 1
+        biobot.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
 
         return 'file uploaded successfully'
 
@@ -373,7 +387,8 @@ def protocol_editor():
 @app.route('/annotator')
 @login_required
 def deck_editor():
-    return render_template('annotator.html')
+    username = current_user.get_id()
+    return render_template('annotator.html', username=username)
 
 @app.route('/deck_editor/send/<b64_deck>')
 @login_required

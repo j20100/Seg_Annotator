@@ -4,6 +4,9 @@
 
 {% block includes %}
     {{ super() }}
+    <script>
+      var username = '{{ username }}';
+    </script>
     <script data-main="{{ url_for('static', filename='js/main.js') }}" src="{{ url_for('static', filename='js/require.js') }}"></script>
 {% endblock includes %}
 

@@ -26,6 +26,7 @@
             <tr>
                 <th>Username</th>
                 <th>Last login</th>
+                <th>Nb of annotated images</th>
                 <th>Active</th>
                 <th>Admin</th>
                 <th>Change admin status</th>
@@ -37,6 +38,7 @@
                 <tr>
                     <td>{{user['username']}}</td>
                     <td>{{convert_ts(user['last_login']) if 'last_login' in user else 'Never'}}</td>
+                    <td>{{user['nb_images']}}</td>
                     {% if user['active'] %}
                         <td>Yes</td>
                     {% else %}
@@ -62,4 +64,3 @@
         });
     </script>
 {% endblock content %}
-
