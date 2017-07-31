@@ -229,14 +229,25 @@ function(Layer, Annotator, util) {
     exportButton.value = "export";
     exportButton.className = "edit-sidebar-submit";
     exportButton.addEventListener("click", function () {
-      var filename = (data.annotationURLs) ?
-          data.annotationURLs[params.id].split(/[\\/]/).pop() :
-          params.id + ".png";
-      fileData.append("file",annotator.export());
-      fileData.append("filename",filename);
-      request.open("POST", "http://192.168.3.9:5000/uploader");
-      request.send(fileData)
-    });
+
+      BootstrapDialog.confirm({
+          title: 'Export image',
+          message: 'Are you sure you wish to export this image?',
+          type: BootstrapDialog.TYPE_INFO,
+          btnOKLabel: 'Confirm',
+          callback: function(result){
+              if(result) {
+                var filename = (data.annotationURLs) ?
+                    data.annotationURLs[params.id].split(/[\\/]/).pop() :
+                    params.id + ".png";
+                fileData.append("file",annotator.export());
+                fileData.append("filename",filename);
+                request.open("POST", "http://192.168.3.9:5000/uploader");
+                request.send(fileData)
+              };
+            }
+        });
+      });
     spacer1.className = "edit-sidebar-spacer";
     undoButton.className = "edit-sidebar-button";
     undoButton.appendChild(document.createTextNode("undo"));
