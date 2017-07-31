@@ -16,7 +16,7 @@ function(indexPage, editPage, colormap, util) {
         index: labels.indexOf(label)
       }) :
       [[255, 255, 255],
-       [226, 196, 196],
+       [200, 0, 0],
        [64, 32, 32]].concat(colormap.create("hsv", {
         size: labels.length - 3
       }));

@@ -45,8 +45,8 @@ function (Layer, segmentation, morph) {
     this.prevAnnotationImg = null;
     var annotator = this;
     this.layers.image.load(imageURL, {
-      width: options.width,
-      height: options.height,
+      width: (options.width || 720),
+      height: (options.height || 480),
       onload: function () { annotator._initialize(options); },
       onerror: options.onerror
     });
