@@ -13,13 +13,10 @@
     <table id="table" class="table table-striped table-bordered table-hover" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Number of images</th>
                 <th>Start time</th>
                 <th>End time</th>
                 <th>Duration</th>
+                <th>Number of images</th>
                 <th>Operator</th>
                 {% if current_user.is_authenticated and current_user.is_admin() %}
                     <th>Delete</th>
@@ -27,18 +24,15 @@
             </tr>
         </thead>
         <tbody>
-            {% for stat in stats %}
+            {% for log in logs %}
                 <tr>
-                    <td><a href="/logs/{{stat['id']}}">{{stat['id']}}</a></td>
-                    <td>{{stat['name']}}</td>
-                    <td>{{stat['description']|nl2br}}</td>
-                    <td>{{stat['nb_steps']}}</td>
-                    <td>{{convert_ts(stat['start'])}}</td>
-                    <td>{{convert_ts(stat['end']) if 'end' in stat else 'Not finished'}}</td>
-                    <td>{{"{0:.1f} seconds".format(stat['end']-stat['start']) if 'end' in stat else 'In progress'}}</td>
-                    <td>{{stat['operator']}}</td>
+                    <td><a href="/logs/{{log['start_time']}}">{{convert_ts(log['start_time'])}}</a></td>
+                    <td>{{convert_ts(log['stop_time']) if (log['stop_time'] != 0) else 'Not finished' }} </td>
+                    <td>{{"{0:.1f} seconds".format(log['stop_time']-log['start_time']) if (log['stop_time'] != 0) else 'In progress'}}</td>
+                    <td>{{log['nb_images']}}</td>
+                    <td>{{log['username']}}</td>
                     {% if current_user.is_authenticated and current_user.is_admin() %}
-                        <td><button class="btn btn-danger btn-xs" onclick="delete_log('{{stat['id']}}')">Delete log</button></td>
+                        <td><button class="btn btn-danger btn-xs" onclick="delete_log('{{log['_id']}}')">Delete log</button></td>
                     {% endif %}
                 </tr>
             {% endfor %}

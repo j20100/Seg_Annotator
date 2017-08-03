@@ -14,6 +14,10 @@ from functools import wraps
 from gridfs import GridFS
 from jinja2 import evalcontextfilter
 from binascii import a2b_base64
+from OpenSSL import SSL
+
+from flask import session
+from flask_socketio import SocketIO, emit
 
 import json
 import hashlib
@@ -97,6 +101,7 @@ help_host = "Hostname of the Flask app. Default: {0}".format(conf.app_host)
 help_port = "Port of the Flask app. Default: {0}".format(conf.app_port)
 help_debug = "Start Flask app in debug mode. Default: {0}".format(conf.debug)
 
+
 # Set up the command-line arguments
 parser = argparse.ArgumentParser(description=app_description,
                                  formatter_class=argparse.RawTextHelpFormatter)
@@ -131,6 +136,19 @@ login_manager.init_app(app)
 # ROS variable
 ros_pid = None
 
+socketio = SocketIO(app)
+
+
+
+@socketio.on('disconnect')
+def disconnect_user():
+    print('DISCONNECTING USER')
+#    user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+#    user = user_logs[-1]
+#    biobot.logs.update_one(user, {'$set' : { 'stop_time' : time.time()}})
+    logout_user()
+#    session.pop(app.secret_key, None)
+
 # User class
 class User(UserMixin):
     """User Class making DB-stored parameters accessible from HTML templates."""
@@ -141,8 +159,6 @@ class User(UserMixin):
         self.nb_images = user['nb_images']
 
     def get_id(self):
-        print(self.username)
-        print(type(self.username))
         return self.username
 
     def is_admin(self):
@@ -179,6 +195,10 @@ def login():
                 if user['admin'] and biobot.credentials.find_one({'active': False}):
                     flash('At least one user account has to be activated', 'info')
                     return redirect(url_for('manage_users'))
+                biobot.logs.insert_one({'start_time' : time.time(),
+                                        'username' : username,
+                                        'stop_time' : 0,
+                                        'nb_images' : 0})
                 return redirect(next_page or url_for('home'))
             else:
                 flash('Account not yet activated by an administrator', 'warning')
@@ -192,6 +212,12 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+
+    user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+
+    user = user_logs[-1]
+
+    biobot.logs.update_one(user, {'$set' : { 'stop_time' : time.time()}})
     logout_user()
     return redirect(url_for('home'))
 
@@ -221,8 +247,8 @@ def create_account():
             flash('Username not available', 'danger')
             return render_template('create_account.html')
 
-        active = True
-        admin = True
+        active = False
+        admin = False
 
         # If this is the first user to register, make it active and admin
         if not biobot.credentials.find_one():
@@ -235,9 +261,6 @@ def create_account():
                                      'password': hash_password(password),
                                      'active': active,
                                      'nb_images' : 0,
-                                     'seq_images' : 0,
-                                     'seq_start' : 0,
-                                     'seq_end' : 0,
                                      'admin': admin})
         flash('Account created successfully', 'success')
         return redirect(url_for('login'))
@@ -314,7 +337,6 @@ def uploader_file():
    if request.method == 'POST':
         pic = request.form['file']
         username = request.form['username']
-        print(request.form)
         filename = request.form['filename']
         #f.save(secure_filename(f.filename))
 
@@ -346,8 +368,14 @@ def uploader_file():
             f.write(binary_data)
 
         user = biobot.credentials.find_one({'username': username})
+        user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+
+        user_stats = user_logs[-1]
         nb_images = user['nb_images']
         nb_images = nb_images + 1
+        nb_images_stats = user_stats['nb_images']
+        nb_images_stats = nb_images_stats + 1
+        biobot.logs.update_one(user_stats, {'$set': {'nb_images': nb_images_stats}})
         biobot.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
 
         return 'file uploaded successfully'
@@ -483,12 +511,12 @@ def mapping_validate(uid):
 
 @app.route('/logs')
 def logs():
-    stats = list(biobot.stats.find())
-    return render_template('logs.html', stats=stats)
+    logs = list(biobot.logs.find())
+    return render_template('logs.html', logs=logs)
 
-@app.route('/logs/<protocol>')
-def log_highlights(protocol):
-    if not valid_protocol(protocol):
+@app.route('/logs/<start_time>')
+def log_highlights(start_time):
+    if not valid_protocol(start_time):
         return redirect(url_for('logs'))
 
     # Get database of current protocol
@@ -608,23 +636,22 @@ def log_picking(protocol, pick_num, step=None):
                            colors=colors, db=db, pictures=pictures,
                            characteristics=characteristics, pick_num=pick_num)
 
-@app.route('/logs/delete/<protocol>')
+@app.route('/logs/delete/<id>')
 @login_required
 @admin_required
-def delete_logs(protocol):
-    if not valid_protocol(protocol):
-        flash("Cannot delete unexisting protocol {0}".format(protocol), 'danger')
-        return redirect(url_for('logs'))
+def delete_logs(id):
 
     # Delete all data from current protocol
-    biobot.stats.delete_one({'id': protocol})
-    images = list(biobot.bca_images.find({'protocol': 'protocol'}))
-    for img in images:
-        fs.delete(img['image_id'])
-    biobot.bca_images.delete_many({'protocol': protocol})
-    client.drop_database(protocol)
+    print('DELETING THE LOG')
+    test = biobot.logs.find()
+    print(test)
+    test_list = list(biobot.logs.find())
+    print(test_list)
+    one = biobot.test_list.find({'_id' : id})
+    print(one)
+    biobot.logs.remove({})
 
-    flash("Entry {0} deleted successfully".format(protocol), 'info')
+    flash("Entry {0} deleted successfully".format(id), 'info')
     return redirect(url_for('logs'))
 
 @app.route('/manage_users')
@@ -910,4 +937,9 @@ app.jinja_env.globals.update(conf=conf,
 
 # Start the application
 if __name__ == '__main__':
-    app.run(debug=conf.debug, host=conf.app_host, port=int(conf.app_port))
+
+    #context = SSL.Context(SSL.TLSv1_2_METHOD)
+    #context.use_privatekey_file('host.key')
+    #context.use_certificate_file('host.cert')
+
+    socketio.run(app, debug=conf.debug, host=conf.app_host, port=int(conf.app_port), ssl_context=('cert.pem', 'key.pem'))
