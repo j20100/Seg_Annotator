@@ -187,20 +187,7 @@ function(Layer, Annotator, util) {
       }, 1000);
     }
   }
-  //  function downloadURI(uri, filename) {
-  //    var anchor = document.createElement("form");
-  //    anchor.action = "http://localhost:5000/uploader";
-  //    anchor.method = "POST"
-  //    anchor.enctype = "multipart/form-data"
-  //    var fileinput = document.createElement("input");
-  //    fileinput.type = filename;
-  //    fileinput.name = "file";
-  //    var fileoutput = document.createElement("input");
-  //    fileoutput.type = "submit";
-  //    anchor.appendChild(fileinput);
-  //    anchor.appendChild(fileoutput);
-  //    document.body.appendChild(anchor);
-  //  }
+
   // Create the sidebar.
   function createSidebar(params, data, annotator) {
     var container = document.createElement("div"),
@@ -242,7 +229,7 @@ function(Layer, Annotator, util) {
                 fileData.append("file",annotator.export());
                 fileData.append("filename",filename);
                 fileData.append("username",username);
-                request.open("POST", "http://192.168.3.9:5000/uploader");
+                request.open("POST", "https://remote.ivisolutions.ca:12344/uploader");
                 request.send(fileData)
               };
             }
@@ -472,30 +459,7 @@ function(Layer, Annotator, util) {
       var re = new RegExp('&'+q+'=([^&]*)','i');
       return (s=s.replace(/^\?/,'&').match(re)) ? s=s[1] : s='';
   }
-//  function downloadURI(uri, filename) {
-//    var anchor = document.createElement("form");
-//    anchor.action = "http://localhost:5000/uploader";
-//    anchor.method = "POST"
-//    anchor.enctype = "multipart/form-data"
-//    var fileinput = document.createElement("input");
-//    fileinput.type = filename;
-//    fileinput.name = "file";
-//    var fileoutput = document.createElement("input");
-//    fileoutput.type = "submit";
-//    anchor.appendChild(fileinput);
-//    anchor.appendChild(fileoutput);
-//    document.body.appendChild(anchor);
-//  }
-  //function downloadURI(uri, filename) {
-    //var anchor = document.createElement("a");
-    //anchor.style.display = "none";
-    //anchor.target = "_blank"; // Safari doesn't work.
-    //anchor.download = filename;
-    //anchor.href = uri;
-    //document.body.appendChild(anchor);
-    //anchor.click();
-    //document.body.removeChild(anchor);
-  //}
+
 
   // Entry point.
   function render(data, params) {
@@ -515,8 +479,9 @@ function(Layer, Annotator, util) {
               var x = 0;
               var newURL = 'no image';
               fileURL.append("URL", data.annotationURLs[id])
-              request.open("POST", "http://192.168.3.9:5000/updater");
+              request.open("POST", "https://remote.ivisolutions.ca:12344/updater");
               request.send(fileURL)
+
               request.onreadystatechange = function(){
                 if (request.readyState == 4)
                   if (request.status == 200)

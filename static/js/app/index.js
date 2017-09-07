@@ -45,7 +45,7 @@ function(Pagination, Viewer, util) {
     var x = 0;
     var newURL = 'no image';
     fileURL.append("URL", annotationURL)
-    request.open("POST", "http://192.168.3.9:5000/updater", false);
+    request.open("POST", "https://remote.ivisolutions.ca:12344/updater", false);
     request.send(fileURL)
     if(request.status === 200) {
         newURL = request.responseText;

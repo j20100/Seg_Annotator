@@ -942,4 +942,4 @@ if __name__ == '__main__':
     #context.use_privatekey_file('host.key')
     #context.use_certificate_file('host.cert')
 
-    socketio.run(app, debug=conf.debug, host=conf.app_host, port=int(conf.app_port), ssl_context=('cert.pem', 'key.pem'))
+    socketio.run(app, host=conf.app_host, port=int(conf.app_port), ssl_context=('cert.pem', 'key.pem'))
