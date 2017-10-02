@@ -362,9 +362,8 @@ def uploader_file():
                 os.remove( os.path.join( directory, item ) )
 
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        #print(timestr)
-        # Do something smart with mime_type
-        with open("static/data/annotations/" + filename + timestr, 'wb') as f:
+
+        with open("static/data/annotations/" + filename + "_corrected_" + timestr, 'wb') as f:
             f.write(binary_data)
 
         user = biobot.credentials.find_one({'username': username})
@@ -510,6 +509,7 @@ def mapping_validate(uid):
         return redirect(request.url)
 
 @app.route('/logs')
+@admin_required
 def logs():
     logs = list(biobot.logs.find())
     return render_template('logs.html', logs=logs)

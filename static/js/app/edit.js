@@ -467,8 +467,8 @@ function(Layer, Annotator, util) {
     if (isNaN(id))
       throw("Invalid id");
     var annotator = new Annotator(data.imageURLs[id], {
-          width: (params.width || 720),
-          height: (params.height || 480),
+          width: (params.width || 480),
+          height: (params.height || 360),
           colormap: data.colormap,
           superpixelOptions: { method: "slic", regionSize: 25 },
           onload: function () {
@@ -515,8 +515,8 @@ function(Layer, Annotator, util) {
           onmousemove: highlightLabel
         }),
         imageLayer = new Layer(data.imageURLs[id], {
-          width: (params.width || 720),
-          height: (params.height || 480)
+          width: (params.width || 480),
+          height: (params.height || 360)
         });
     document.body.appendChild(createNavigationMenu(params, data, annotator));
     document.body.appendChild(createMainDisplay(params,
