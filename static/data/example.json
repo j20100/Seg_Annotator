@@ -1,6 +1,6 @@
 {
   "labels": [
-	"void",
+	"road",
 	"sidewalk",
 	"building",
 	"wall",
@@ -19,7 +19,7 @@
 	"train",
 	"motorcycle",
 	"bicycle",
-	"road"
+	"void"
   ],
   "imageURLs": [
 
