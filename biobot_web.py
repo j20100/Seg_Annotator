@@ -39,7 +39,7 @@ import biobot_schema
 
 from flask_cors import CORS
 
-
+curr_annotated_img = []
 
 def hash_password(password):
     """This function hashes the password with SHA256 and a random salt"""
@@ -337,15 +337,28 @@ def home():
 def uploader_new_img():
    if request.method == 'POST':
 
+        global curr_annotated_img
         directory = "static/data/annotations/"
 
         searchlabel = os.path.join(directory, "*.png" )
         fileslabel = glob.glob(searchlabel)
         fileslabel.sort()
 
-        newImgAnnot = fileslabel[0]
+        i = 0
+        print("Doin the currently annotated img now")
+        print(curr_annotated_img)
+        print(fileslabel[i])
+        while fileslabel[i] in curr_annotated_img :
+            i=i+1
 
-        t = fileslabel[0].split('/')
+        print("THIS ONE PASED")
+        print(fileslabel[i])
+
+        newImgAnnot = fileslabel[i]
+
+
+
+        t = fileslabel[i].split('/')
         print(t)
         newImg=t[0]+"/"+t[1]+"/"+"images"+"/"+t[3]
 
@@ -355,6 +368,8 @@ def uploader_new_img():
         print(newImgAnnot)
         send = newImg+":"+newImgAnnot
         print(send)
+
+        curr_annotated_img.append(newImgAnnot)
 
         return send
 

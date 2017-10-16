@@ -3,7 +3,7 @@
 	"road",
 	"sidewalk",
 	"building",
-	"wall",
+	"lanemark",
 	"fence",
 	"pole",
 	"trafficlight",
@@ -16,7 +16,7 @@
 	"car",
 	"truck",
 	"bus",
-	"train",
+	"snow",
 	"motorcycle",
 	"bicycle",
 	"void"
