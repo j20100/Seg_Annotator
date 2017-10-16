@@ -11,52 +11,14 @@ function(Layer, Annotator, util) {
         idBlock = document.createElement("div");
     idBlock.className = "edit-top-menu-id";
     idBlock.appendChild(
-        document.createTextNode(" ID = " + params.id));
+        document.createTextNode(" ID = " + id));
     navigationMenu.appendChild(navigation);
     navigationMenu.appendChild(idBlock);
     return navigationMenu;
   }
 
-  // Create the page navigation.
-  function createNavigation(params, data) {
-    var id = parseInt(params.id, 10),
-        container = document.createElement("div"),
-        indexAnchor = document.createElement("a"),
-        indexAnchorText = document.createTextNode("Index"),
-        prevAnchorText = document.createTextNode("Prev"),
-        nextAnchorText = document.createTextNode("Next"),
-        prevAnchor, nextAnchor;
-    indexAnchor.href = util.makeQueryParams({ view: "index" });
-    indexAnchor.appendChild(indexAnchorText);
-    if (id > 0) {
-      prevAnchor = document.createElement("a");
-      prevAnchor.appendChild(prevAnchorText);
-      prevAnchor.href = util.makeQueryParams(params, {
-        id: id - 1
-      });
-    }
-    else
-      prevAnchor = prevAnchorText;
-    if (id < data.imageURLs.length - 1) {
-      nextAnchor = document.createElement("a");
-      nextAnchor.appendChild(nextAnchorText);
-      nextAnchor.href = util.makeQueryParams(params, {
-        id: id + 1
-      });
-    }
-    else
-      nextAnchor = nextAnchorText;
-    container.appendChild(prevAnchor);
-    container.appendChild(document.createTextNode(" "));
-    container.appendChild(indexAnchor);
-    container.appendChild(document.createTextNode(" "));
-    container.appendChild(nextAnchor);
-    container.classList.add("edit-top-menu-block");
-    return container;
-  }
-
   // Create the main content block.
-  function createMainDisplay(params, data, annotator, imageLayer) {
+  function createMainDisplay(params, data, annotator, imageLayer, newImg) {
     var container = document.createElement("div"),
         imageContainerSpacer = document.createElement("div"),
         imageContainer = document.createElement("div"),
@@ -64,7 +26,7 @@ function(Layer, Annotator, util) {
         annotatorContainer = document.createElement("div"),
         sidebarSpacer = document.createElement("div"),
         sidebarContainer = document.createElement("div"),
-        sidebar = createSidebar(params, data, annotator);
+        sidebar = createSidebar(params, data, annotator, newImg);
     imageContainerSpacer.className = "edit-image-top-menu";
     imageContainer.className = "edit-image-display";
     imageContainer.appendChild(imageContainerSpacer);
@@ -189,7 +151,7 @@ function(Layer, Annotator, util) {
   }
 
   // Create the sidebar.
-  function createSidebar(params, data, annotator) {
+  function createSidebar(params, data, annotator, newImg) {
     var container = document.createElement("div"),
         labelPicker = createLabelPicker(params, data, annotator),
         spacer1 = document.createElement("div"),
@@ -223,15 +185,24 @@ function(Layer, Annotator, util) {
           btnOKLabel: 'Confirm',
           callback: function(result){
               if(result) {
-                var filename = (data.annotationURLs) ?
-                    data.annotationURLs[params.id].split(/[\\/]/).pop() :
-                    params.id + ".png";
+                var filename = (newImg[1]) ?
+                    newImg[1].split(/[\\/]/).pop() :
+                    id + ".png";
+                var x = 0;
                 fileData.append("file",annotator.export());
                 fileData.append("filename",filename);
                 fileData.append("username",username);
                 request.open("POST", "https://remote.ivisolutions.ca:5000/uploader");
                 request.send(fileData)
+
+                request.onreadystatechange = function(){
+                  if (request.readyState == 4)
+                    if (request.status == 200)
+                      location.reload();
+                      x = 1;
+                };
               };
+
             }
         });
       });
@@ -460,41 +431,40 @@ function(Layer, Annotator, util) {
       return (s=s.replace(/^\?/,'&').match(re)) ? s=s[1] : s='';
   }
 
+  function load_new_img() {
+    var fileURL = new FormData();
+    var request = new XMLHttpRequest();
+    var x = 0;
+    var newURL = 'no image';
+    fileURL.append("URL", "annotationURL")
+    request.open("POST", "https://remote.ivisolutions.ca:5000/load_new_img", false);
+    request.send(fileURL)
+    if(request.status === 200) {
+        newURL = request.responseText;
+        if (newURL != 'no image'){
+          x = 1;
+          return newURL;
+        }
+    };
+  }
 
   // Entry point.
   function render(data, params) {
-    var id = parseInt(params.id, 10);
-    if (isNaN(id))
-      throw("Invalid id");
-    var annotator = new Annotator(data.imageURLs[id], {
+    var id = parseInt(1, 10);
+
+    var newImg = load_new_img()
+    var newImg = newImg.split(":");
+    console.log("Image is")
+    console.log(newImg[0])
+    console.log(newImg[1])
+
+    var annotator = new Annotator(newImg[0], {
           width: (params.width || 480),
           height: (params.height || 360),
           colormap: data.colormap,
           superpixelOptions: { method: "slic", regionSize: 25 },
           onload: function () {
-
-            if (data.annotationURLs){
-              var fileURL = new FormData();
-              var request = new XMLHttpRequest();
-              var x = 0;
-              var newURL = 'no image';
-              fileURL.append("URL", data.annotationURLs[id])
-              request.open("POST", "https://remote.ivisolutions.ca:5000/updater");
-              request.send(fileURL)
-
-              request.onreadystatechange = function(){
-                if (request.readyState == 4)
-                  if (request.status == 200)
-                    newURL = request.responseText;
-                    if (newURL != 'no image')
-                      annotator.import(newURL);
-                    x = 1;
-              };
-            }
-
-
-            //if (data.annotationURLs)
-            //  annotator.import(data.annotationURLs[id]);
+            annotator.import(newImg[1]);
             annotator.hide("boundary");
             boundaryFlash();
           },
@@ -514,15 +484,16 @@ function(Layer, Annotator, util) {
           },
           onmousemove: highlightLabel
         }),
-        imageLayer = new Layer(data.imageURLs[id], {
+        imageLayer = new Layer(newImg[0], {
           width: (params.width || 480),
           height: (params.height || 360)
         });
-    document.body.appendChild(createNavigationMenu(params, data, annotator));
+    //document.body.appendChild(createNavigationMenu(params, data, annotator));
     document.body.appendChild(createMainDisplay(params,
                                                 data,
                                                 annotator,
-                                                imageLayer));
+                                                imageLayer,
+                                                newImg));
   }
 
   return render;

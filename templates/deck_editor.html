@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Annotator{% endblock title %}
+{% block title %}dataset{% endblock title %}
 
 {% block includes %}
     {{ super() }}
@@ -9,7 +9,7 @@
 {% endblock includes %}
 
 {% block content %}
-    <h1>Annotator</h1>
+    <h1>dataset</h1>
     <button onclick="save_deck()" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
     <button class="btn btn-primary btn-file"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span> Open<input id="open-deck" type="file" accept=".json"></button>
     <button onclick="send_deck()" class="btn btn-primary"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Send</button>
