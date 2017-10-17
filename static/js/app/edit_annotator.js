@@ -154,29 +154,153 @@ function(Layer, Annotator, util) {
   function createSidebar(params, data, annotator, newImg) {
     var container = document.createElement("div"),
         labelPicker = createLabelPicker(params, data, annotator),
+        manualParagraph1 = document.createElement("p"),
         spacer1 = document.createElement("div"),
+        exportButton = document.createElement("input"),
+        spacer2 = document.createElement("div"),
         undoButton = document.createElement("div"),
         redoButton = document.createElement("div"),
-        spacer2 = document.createElement("div"),
-        denoiseButton = document.createElement("div"),
         spacer3 = document.createElement("div"),
-        superpixelToolButton = document.createElement("div"),
+        denoiseButton = document.createElement("div"),
         spacer4 = document.createElement("div"),
-        polygonToolButton = document.createElement("div"),
+        tools = document.createElement("div"),
+        /*superpixelToolButton = document.createElement("div"),
         spacer5 = document.createElement("div"),
-        brushToolButton = document.createElement("div"),
+        polygonToolButton = document.createElement("div"),
         spacer6 = document.createElement("div"),
-        manualParagraph = document.createElement("p"),
+        brushToolButton = document.createElement("div"),
         spacer7 = document.createElement("div"),
+        */
         anchor = document.createElement("form"),
-        exportButton = document.createElement("input"),
+        manualParagraph = document.createElement("p"),
         manualText;
+
+    spacer1.className = "edit-sidebar-spacer";
+    undoButton.className = "btn btn-default";
+    undoButton.appendChild(document.createTextNode("Undo"));
+    undoButton.addEventListener("click", function () { annotator.undo(); });
+    redoButton.className = "btn btn-default";
+    redoButton.appendChild(document.createTextNode("Redo"));
+    redoButton.addEventListener("click", function () { annotator.redo(); });
+    spacer2.className = "edit-sidebar-spacer";
+    denoiseButton.className = "btn btn-default";
+    denoiseButton.appendChild(document.createTextNode("Denoise"));
+    denoiseButton.addEventListener("click", function () {
+      annotator.denoise();
+    });/*
+    superpixelToolButton.className = "btn btn-default btn-sm";
+    superpixelToolButton.appendChild(
+      document.createTextNode("Superpixel tool"));
+    superpixelToolButton.addEventListener("click", function () {
+      polygonToolButton.classList.remove("edit-sidebar-button-selected");
+      brushToolButton.classList.remove("edit-sidebar-button-selected");
+      superpixelToolButton.classList.add("edit-sidebar-button-selected");
+      annotator._setMode("superpixel");
+    });
+    superpixelToolButton.classList.add("edit-sidebar-button-selected");
+    polygonToolButton.className = "edit-sidebar-button";
+    polygonToolButton.appendChild(document.createTextNode("Polygon tool"));
+    polygonToolButton.addEventListener("click", function () {
+      superpixelToolButton.classList.remove("edit-sidebar-button-selected");
+      brushToolButton.classList.remove("edit-sidebar-button-selected");
+      polygonToolButton.classList.add("edit-sidebar-button-selected");
+      annotator._setMode("polygon");
+    });
+
+    brushToolButton.classList.add("edit-sidebar-button-selected");
+    brushToolButton.className = "btn btn-default btn-sm";
+    brushToolButton.appendChild(document.createTextNode("Brush tool"));
+    brushToolButton.addEventListener("click", function () {
+      superpixelToolButton.classList.remove("edit-sidebar-button-selected");
+      polygonToolButton.classList.remove("edit-sidebar-button-selected");
+      brushToolButton.classList.add("edit-sidebar-button-selected");
+
+      annotator._setMode("brush");
+    });
+*/
+    tools.className = "btn-group btn-group-vertical";
+    tools.setAttribute("data-toggle", "buttons");
+
+    stb = document.createElement("label");
+    stb.className = "btn btn-default btn active";
+    stb.appendChild(document.createTextNode("Superpixel"));
+    stb_input = document.createElement("input");
+    stb_input.setAttribute("type","radio");
+    stb_input.setAttribute("name", "Superpixel");
+    stb_input.setAttribute("id", "option1");
+    stb.appendChild(stb_input);
+    stb.addEventListener("click", function () {
+      annotator._setMode("superpixel")
+    });
+
+    ptb = document.createElement("label");
+    ptb.className = "btn btn-default btn";
+    ptb.appendChild(document.createTextNode("Polygon"));
+    ptb_input = document.createElement("input");
+    ptb_input.setAttribute("type", "radio");
+    ptb_input.setAttribute("name", "Polygon");
+    ptb_input.setAttribute("id", "option2");
+    ptb.appendChild(ptb_input);
+    ptb.addEventListener("click", function () {
+      annotator._setMode("polygon");
+    });
+
+    btb = document.createElement("label");
+    btb.className = "btn btn-default";
+    btb.appendChild(document.createTextNode("Brush"));
+    btb_input = document.createElement("input");
+    btb_input.setAttribute("type", "radio");
+    btb_input.setAttribute("name", "Brush");
+    btb_input.setAttribute("id", "option3");
+    btb.appendChild(btb_input);
+    btb.addEventListener("click", function () {
+      annotator._setMode("brush");
+    });
+
+    tools.appendChild(stb);
+    tools.appendChild(ptb);
+    tools.appendChild(btb);
+
+    spacer3.className = "edit-sidebar-spacer";
+    manualParagraph1.appendChild(document.createTextNode("+ : Reassign label"));
+    manualParagraph.appendChild(document.createTextNode("ctrl: toggle mode"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createTextNode("Superpixel tool:"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createTextNode("left: mark"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createTextNode("right: pick label"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createTextNode("Polygon tool:"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createTextNode("left: draw line"));
+    manualParagraph.appendChild(document.createElement("br"));
+    manualParagraph.appendChild(document.createTextNode("right: abort"));
+    spacer4.className = "edit-sidebar-spacer";
+    container.className = "edit-sidebar";
+    container.appendChild(labelPicker);
+    container.appendChild(manualParagraph1);
+    container.appendChild(undoButton);
+    container.appendChild(redoButton);
+    container.appendChild(spacer1);
+    container.appendChild(denoiseButton);
+    container.appendChild(spacer2);
+    container.appendChild(tools);
+    //container.appendChild(polygonToolButton);
+    //container.appendChild(superpixelToolButton);
+    //container.appendChild(brushToolButton);
+    container.appendChild(spacer3);
+    container.appendChild(exportButton);
+    container.appendChild(spacer4);
+    container.appendChild(manualParagraph);
     var fileData = new FormData();
     var request = new XMLHttpRequest();
-    anchor.appendChild(exportButton);
+
     exportButton.type = "submit";
-    exportButton.value = "export";
-    exportButton.className = "edit-sidebar-submit";
+    exportButton.value = "Export";
+    exportButton.className = "btn btn-success btn-lg";
     exportButton.addEventListener("click", function () {
       BootstrapDialog.confirm({
           title: 'Export image',
@@ -206,81 +330,6 @@ function(Layer, Annotator, util) {
             }
         });
       });
-    spacer1.className = "edit-sidebar-spacer";
-    undoButton.className = "edit-sidebar-button";
-    undoButton.appendChild(document.createTextNode("undo"));
-    undoButton.addEventListener("click", function () { annotator.undo(); });
-    redoButton.className = "edit-sidebar-button";
-    redoButton.appendChild(document.createTextNode("redo"));
-    redoButton.addEventListener("click", function () { annotator.redo(); });
-    spacer2.className = "edit-sidebar-spacer";
-    denoiseButton.className = "edit-sidebar-button";
-    denoiseButton.appendChild(document.createTextNode("denoise"));
-    denoiseButton.addEventListener("click", function () {
-      annotator.denoise();
-    });
-    superpixelToolButton.className = "edit-sidebar-button";
-    superpixelToolButton.appendChild(
-      document.createTextNode("Superpixel tool"));
-    superpixelToolButton.addEventListener("click", function () {
-      polygonToolButton.classList.remove("edit-sidebar-button-selected");
-      brushToolButton.classList.remove("edit-sidebar-button-selected");
-      superpixelToolButton.classList.add("edit-sidebar-button-selected");
-      annotator._setMode("superpixel");
-    });
-    superpixelToolButton.classList.add("edit-sidebar-button-selected");
-    polygonToolButton.className = "edit-sidebar-button";
-    polygonToolButton.appendChild(document.createTextNode("Polygon tool"));
-    polygonToolButton.addEventListener("click", function () {
-      superpixelToolButton.classList.remove("edit-sidebar-button-selected");
-      brushToolButton.classList.remove("edit-sidebar-button-selected");
-      polygonToolButton.classList.add("edit-sidebar-button-selected");
-      annotator._setMode("polygon");
-    });
-
-    brushToolButton.classList.add("edit-sidebar-button-selected");
-    brushToolButton.className = "edit-sidebar-button";
-    brushToolButton.appendChild(document.createTextNode("Brush tool"));
-    brushToolButton.addEventListener("click", function () {
-      superpixelToolButton.classList.remove("edit-sidebar-button-selected");
-      polygonToolButton.classList.remove("edit-sidebar-button-selected");
-      brushToolButton.classList.add("edit-sidebar-button-selected");
-
-      annotator._setMode("brush");
-    });
-
-
-    spacer3.className = "edit-sidebar-spacer";
-    manualParagraph.appendChild(document.createTextNode("ctrl: toggle mode"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("+Superpixel tool:"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("left: mark"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("right: pick label"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("+Polygon tool:"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("left: draw line"));
-    manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("right: abort"));
-    spacer4.className = "edit-sidebar-spacer";
-    container.className = "edit-sidebar";
-    container.appendChild(labelPicker);
-    container.appendChild(spacer1);
-    container.appendChild(undoButton);
-    container.appendChild(redoButton);
-    container.appendChild(spacer2);
-    container.appendChild(denoiseButton);
-    container.appendChild(spacer3);
-    container.appendChild(polygonToolButton);
-    container.appendChild(superpixelToolButton);
-    container.appendChild(brushToolButton);
-    container.appendChild(manualParagraph);
-    //container.appendChild(spacer4);
-    container.appendChild(exportButton);
     return container;
   }
 
@@ -312,9 +361,9 @@ function(Layer, Annotator, util) {
     pickButton.appendChild(popupButton);
     pickButton.appendChild(popupContainer);
     pickButton.id = "label-" + index + "-button";
-    pickButton.className = "edit-sidebar-button";
+    pickButton.className = "edit-sidebar-label-button";
     pickButton.addEventListener("click", function () {
-      var className = "edit-sidebar-button-selected";
+      var className = "edit-sidebar-label-button-selected";
       annotator.currentLabel = index;
       var selectedElements = document.getElementsByClassName(className);
       for (var i = 0; i < selectedElements.length; ++i)
@@ -364,12 +413,12 @@ function(Layer, Annotator, util) {
   // Create the label picker button.
   function createLabelPicker(params, data, annotator) {
     var container = document.createElement("div");
-    container.className = "edit-sidebar-label-picker";
+    container.className = "edit-sidebar-label-picker-tab";
     for (var i = 0; i < data.labels.length; ++i) {
       var labelButton = createLabelButton(data, data.labels[i], i, annotator);
       if (i === 0) {
         annotator.currentLabel = 0;
-        labelButton.classList.add("edit-sidebar-button-selected");
+        labelButton.classList.add("edit-sidebar-label-button");
       }
       container.appendChild(labelButton);
     }

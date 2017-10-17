@@ -178,11 +178,41 @@ button.eStop:hover {
   padding: 0 0.5em;
   width: 100%;
 }
+.edit-sidebar-label-picker-tab {
+  position: relative;
+  background-color: #eee;
+  border-radius: 5px;
+  border: 0.5px solid black;
+}
+.edit-sidebar-label-button {
+  position: relative;
+  background-color: #eee;
+  cursor: pointer;
+  padding-left: 2px;
+  border-radius: 5px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.edit-sidebar-label-button:hover {
+  background-color: #aaa;
+}
+.edit-sidebar-label-button-selected,
+.edit-sidebar-label-button-enabled {
+  background-color: #ccc;
+}
+.edit-sidebar-label-button-highlight {
+  background-color: #aaa;
+}
+
 .edit-sidebar-button {
   position: relative;
   background-color: #eee;
   cursor: pointer;
   padding-left: 2px;
+  border-radius: 5px;
+  border: 0.5px solid black;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -222,6 +252,7 @@ button.eStop:hover {
   min-width: 1em;
   text-align: center;
   background-color: #ddd;
+  border-radius: 20px;
 }
 .edit-sidebar-popup-trigger:hover {
   background-color: #999;
