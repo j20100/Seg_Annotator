@@ -333,6 +333,12 @@ def ros_stop():
 def home():
     return render_template('index.html')
 
+def sortKeyFunc(s):
+    t = s.split('/')
+    k=t[3].split('.')
+    s=k[0].split('_')
+    return int(s[2])
+
 @app.route('/load_new_img', methods = ['POST'])
 def uploader_new_img():
    if request.method == 'POST':
@@ -342,32 +348,32 @@ def uploader_new_img():
 
         searchlabel = os.path.join(directory, "*.png" )
         fileslabel = glob.glob(searchlabel)
-        fileslabel.sort()
+        fileslabel.sort(key=sortKeyFunc)
 
         i = 0
-        print("Doin the currently annotated img now")
-        print(curr_annotated_img)
-        print(fileslabel[i])
+        #print("Doin the currently annotated img now")
+        #print(curr_annotated_img)
+        #print(fileslabel[i])
         while fileslabel[i] in curr_annotated_img :
             i=i+1
 
-        print("THIS ONE PASED")
-        print(fileslabel[i])
+        #print("THIS ONE PASED")
+        #print(fileslabel[i])
 
         newImgAnnot = fileslabel[i]
 
 
 
         t = fileslabel[i].split('/')
-        print(t)
+        #print(t)
         newImg=t[0]+"/"+t[1]+"/"+"images"+"/"+t[3]
 
-        print("Sending new img")
-        print(newImg)
-        print("Sending new img annot")
-        print(newImgAnnot)
+        #print("Sending new img")
+        #print(newImg)
+        #print("Sending new img annot")
+        #print(newImgAnnot)
         send = newImg+":"+newImgAnnot
-        print(send)
+        #print(send)
 
         curr_annotated_img.append(newImgAnnot)
 
@@ -421,8 +427,8 @@ def uploader_annot_file():
         fileslabel.sort()
 
         newImg = fileslabel[0]
-        print("Sending new ID annot")
-        print(newImg)
+        #print("Sending new ID annot")
+        #print(newImg)
 
         return newImg
 
@@ -481,14 +487,12 @@ def updater_URL():
         annotURL = request.form["URL"]
 
         directory = "static/data/annotations/"
-        test = os.listdir( directory )
+        test = os.listdir(directory)
         realURL = "NONE"
-        #print(annotURL[24:])
         for item in test:
-            if item.startswith(annotURL[24:]):
-                #print(realURL)
+            if item.startswith(annotURL[25:]):
                 realURL = item
-                #print(realURL)
+
         return "static/data/annotations/" + realURL
 
 @app.route('/surveillance')
