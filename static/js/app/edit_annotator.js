@@ -316,7 +316,7 @@ function(Layer, Annotator, util) {
                 fileData.append("file",annotator.export());
                 fileData.append("filename",filename);
                 fileData.append("username",username);
-                request.open("POST", "https://remote.ivisolutions.ca:12344/uploader");
+                request.open("POST", "https://remote.ivisolutions.ca:5000/uploader");
                 request.send(fileData)
 
                 request.onreadystatechange = function(){
@@ -486,7 +486,7 @@ function(Layer, Annotator, util) {
     var x = 0;
     var newURL = 'no image';
     fileURL.append("URL", "annotationURL")
-    request.open("POST", "https://remote.ivisolutions.ca:12344/load_new_img", false);
+    request.open("POST", "https://remote.ivisolutions.ca:5000/load_new_img", false);
     request.send(fileURL)
     if(request.status === 200) {
         newURL = request.responseText;

@@ -75,7 +75,7 @@ fieldset[disabled] .btn-danger {
 }
 .btn-default:hover,
 .btn-default:focus {
-  /* BioBot Edit
+  /* annotator Edit
   background-color: #e0e0e0;
   */
   background: #e0e0e0;
@@ -119,7 +119,7 @@ fieldset[disabled] .btn-default.active {
 }
 .btn-primary:hover,
 .btn-primary:focus {
-  /* BioBot Edit
+  /* annotator Edit
   background-color: #265a88;
   */
   background: #265a88;
@@ -163,7 +163,7 @@ fieldset[disabled] .btn-primary.active {
 }
 .btn-success:hover,
 .btn-success:focus {
-  /* BioBot Edit
+  /* annotator Edit
   background-color: #419641;
   */
   background: #419641;
@@ -207,7 +207,7 @@ fieldset[disabled] .btn-success.active {
 }
 .btn-info:hover,
 .btn-info:focus {
-  /* BioBot Edit
+  /* annotator Edit
   background-color: #2aabd2;
   */
   background: #2aabd2;
@@ -251,7 +251,7 @@ fieldset[disabled] .btn-info.active {
 }
 .btn-warning:hover,
 .btn-warning:focus {
-  /* BioBot Edit
+  /* annotator Edit
   background-color: #eb9316;
   */
   background: #eb9316;
@@ -295,7 +295,7 @@ fieldset[disabled] .btn-warning.active {
 }
 .btn-danger:hover,
 .btn-danger:focus {
-  /* BioBot Edit
+  /* annotator Edit
   background-color: #c12e2a;
   */
   background: #c12e2a;

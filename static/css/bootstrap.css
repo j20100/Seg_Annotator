@@ -3027,7 +3027,7 @@ select[multiple].input-lg {
 .btn.focus,
 .btn:active.focus,
 .btn.active.focus {
-  /* BioBot Edit
+  /* annotator Edit
   outline: 5px auto -webkit-focus-ring-color;
   */
   outline: 0;
@@ -4099,7 +4099,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .nav-pills > li.active > a,
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:focus {
-  /* BioBot Edit
+  /* annotator Edit
   color: #fff;
   background-color: #337ab7;
   */
