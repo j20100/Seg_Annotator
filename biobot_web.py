@@ -32,13 +32,14 @@ import urllib.parse
 import webcolors
 import os
 import time
+import glob
 
 
 import biobot_schema
 
 from flask_cors import CORS
 
-
+curr_annotated_img = []
 
 def hash_password(password):
     """This function hashes the password with SHA256 and a random salt"""
@@ -332,7 +333,106 @@ def ros_stop():
 def home():
     return render_template('index.html')
 
-@app.route('/uploader', methods = ['GET', 'POST'])
+def sortKeyFunc(s):
+    t = s.split('/')
+    k=t[3].split('.')
+    s=k[0].split('_')
+    return int(s[2])
+
+@app.route('/load_new_img', methods = ['POST'])
+def uploader_new_img():
+   if request.method == 'POST':
+
+        global curr_annotated_img
+        directory = "static/data/annotations/"
+
+        searchlabel = os.path.join(directory, "*.png" )
+        fileslabel = glob.glob(searchlabel)
+        fileslabel.sort(key=sortKeyFunc)
+
+        i = 0
+        #print("Doin the currently annotated img now")
+        #print(curr_annotated_img)
+        #print(fileslabel[i])
+        while fileslabel[i] in curr_annotated_img :
+            i=i+1
+
+        #print("THIS ONE PASED")
+        #print(fileslabel[i])
+
+        newImgAnnot = fileslabel[i]
+
+
+
+        t = fileslabel[i].split('/')
+        #print(t)
+        newImg=t[0]+"/"+t[1]+"/"+"images"+"/"+t[3]
+
+        #print("Sending new img")
+        #print(newImg)
+        #print("Sending new img annot")
+        #print(newImgAnnot)
+        send = newImg+":"+newImgAnnot
+        #print(send)
+
+        curr_annotated_img.append(newImgAnnot)
+
+        return send
+
+@app.route('/uploader_annot', methods = ['POST'])
+def uploader_annot_file():
+   if request.method == 'POST':
+        pic = request.form['file']
+        username = request.form['username']
+        filename = request.form['filename']
+        #f.save(secure_filename(f.filename))
+
+        up = urllib.parse.urlparse(pic)
+        head, data = up.path.split(',', 1)
+        bits = head.split(';')
+        mime_type = bits[0] if bits[0] else 'text/plain'
+        charset, b64 = 'ASCII', False
+        for bit in bits:
+            if bit.startswith('charset='):
+                charset = bit[8:]
+            elif bit == 'base64':
+                b64 = True
+
+        binary_data = a2b_base64(data)
+        directory = "static/data/annotations/"
+        test = os.listdir( directory )
+
+        for item in test:
+            if item.startswith(filename):
+                os.remove( os.path.join( directory, item ) )
+
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        with open("static/data/annotations/" + filename + "_corrected_" + timestr, 'wb') as f:
+            f.write(binary_data)
+
+        user = biobot.credentials.find_one({'username': username})
+        user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+
+        user_stats = user_logs[-1]
+        nb_images = user['nb_images']
+        nb_images = nb_images + 1
+        nb_images_stats = user_stats['nb_images']
+        nb_images_stats = nb_images_stats + 1
+        biobot.logs.update_one(user_stats, {'$set': {'nb_images': nb_images_stats}})
+        biobot.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
+
+        searchlabel = os.path.join(directory, "*.png" )
+        fileslabel = glob.glob(searchlabel)
+        fileslabel.sort()
+
+        newImg = fileslabel[0]
+        #print("Sending new ID annot")
+        #print(newImg)
+
+        return newImg
+
+@app.route('/uploader', methods = ['POST'])
 def uploader_file():
    if request.method == 'POST':
         pic = request.form['file']
@@ -351,9 +451,7 @@ def uploader_file():
             elif bit == 'base64':
                 b64 = True
 
-        # Do something smart with charset and b64 instead of assuming
         binary_data = a2b_base64(data)
-
         directory = "static/data/annotations/"
         test = os.listdir( directory )
 
@@ -362,9 +460,8 @@ def uploader_file():
                 os.remove( os.path.join( directory, item ) )
 
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        #print(timestr)
-        # Do something smart with mime_type
-        with open("static/data/annotations/" + filename + timestr, 'wb') as f:
+
+        with open("static/data/annotations/" + filename + "_corrected_" + timestr, 'wb') as f:
             f.write(binary_data)
 
         user = biobot.credentials.find_one({'username': username})
@@ -378,7 +475,11 @@ def uploader_file():
         biobot.logs.update_one(user_stats, {'$set': {'nb_images': nb_images_stats}})
         biobot.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
 
-        return 'file uploaded successfully'
+        searchlabel = os.path.join(directory, "*.png" )
+        fileslabel = glob.glob(searchlabel)
+        fileslabel.sort()
+
+        return "Done sending imges"
 
 @app.route('/updater', methods = ['POST'])
 def updater_URL():
@@ -386,14 +487,12 @@ def updater_URL():
         annotURL = request.form["URL"]
 
         directory = "static/data/annotations/"
-        test = os.listdir( directory )
+        test = os.listdir(directory)
         realURL = "NONE"
-        #print(annotURL[24:])
         for item in test:
-            if item.startswith(annotURL[24:]):
-                #print(realURL)
+            if item.startswith(annotURL[25:]):
                 realURL = item
-                #print(realURL)
+
         return "static/data/annotations/" + realURL
 
 @app.route('/surveillance')
@@ -414,9 +513,15 @@ def protocol_editor():
 
 @app.route('/annotator')
 @login_required
-def deck_editor():
+def annotator():
     username = current_user.get_id()
     return render_template('annotator.html', username=username)
+
+@app.route('/dataset')
+@login_required
+def dataset():
+    username = current_user.get_id()
+    return render_template('dataset.html', username=username)
 
 @app.route('/deck_editor/send/<b64_deck>')
 @login_required
@@ -510,6 +615,7 @@ def mapping_validate(uid):
         return redirect(request.url)
 
 @app.route('/logs')
+@admin_required
 def logs():
     logs = list(biobot.logs.find())
     return render_template('logs.html', logs=logs)
@@ -942,4 +1048,4 @@ if __name__ == '__main__':
     #context.use_privatekey_file('host.key')
     #context.use_certificate_file('host.cert')
 
-    socketio.run(app, debug=conf.debug, host=conf.app_host, port=int(conf.app_port), ssl_context=('cert.pem', 'key.pem'))
+    socketio.run(app, host=conf.app_host, port=int(conf.app_port), ssl_context=('cert.pem', 'key.pem'))

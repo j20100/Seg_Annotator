@@ -12,7 +12,7 @@ function (util) {
   function Pagination(count, params) {
     var i, anchor,
         page = parseInt(params.page || 0, 10),
-        perPage = parseInt(params.per_page || 30, 10),
+        perPage = parseInt(params.per_page || 10, 10),
         neighbors = parseInt(params.page_neighbors || 2, 10),
         pages = Math.ceil(count / perPage),
         startIndex = Math.min(Math.max(page * perPage, 0), count),

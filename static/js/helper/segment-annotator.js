@@ -45,8 +45,8 @@ function (Layer, segmentation, morph) {
     this.prevAnnotationImg = null;
     var annotator = this;
     this.layers.image.load(imageURL, {
-      width: (options.width || 720),
-      height: (options.height || 480),
+      width: (options.width || 480),
+      height: (options.height || 360),
       onload: function () { annotator._initialize(options); },
       onerror: options.onerror
     });
@@ -146,23 +146,6 @@ function (Layer, segmentation, morph) {
     options = options || {};
     var annotator = this;
 
-    //add dynamic annoatations loading
-    //var fileURL = new FormData();
-    //var request = new XMLHttpRequest();
-    //var x = 0;
-    //var newURL = 'no image';
-    //fileURL.append("URL", annotationURL)
-    //request.open("POST", "http://localhost:5000/updater", false);
-    //request.send(fileURL)
-    //request.onreadystatechange = function(){
-  //    if (request.readyState == 4)
-  //      if (request.status == 200)
-  //        newURL = request.responseText;
-  //        x = 1;
-  //  };
-
-    //setTimeout(function(){
-      //if (x == 1) {
     this.layers.annotation.load(annotationURL, {
       onload: function () {
         if (options.grayscale)
