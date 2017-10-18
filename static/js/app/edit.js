@@ -229,7 +229,7 @@ function(Layer, Annotator, util) {
                 fileData.append("file",annotator.export());
                 fileData.append("filename",filename);
                 fileData.append("username",username);
-                request.open("POST", "https://remote.ivisolutions.ca:5000/uploader");
+                request.open("POST", "https://remote.ivisolutions.ca:12344/uploader");
                 request.send(fileData)
               };
             }
@@ -479,7 +479,7 @@ function(Layer, Annotator, util) {
               var x = 0;
               var newURL = 'no image';
               fileURL.append("URL", data.annotationURLs[id])
-              request.open("POST", "https://remote.ivisolutions.ca:5000/updater");
+              request.open("POST", "https://remote.ivisolutions.ca:12344/updater");
               request.send(fileURL)
 
               request.onreadystatechange = function(){
