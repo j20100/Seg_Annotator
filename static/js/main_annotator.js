@@ -1,7 +1,7 @@
 /* Main page dispatcher.
 */
 requirejs(['app/index',
-           'app/edit',
+           'app/edit_annotator',
            'helper/colormap',
            'helper/util'],
 function(indexPage, editPage, colormap, util) {
@@ -30,13 +30,13 @@ function(indexPage, editPage, colormap, util) {
 
   switch(params.view) {
     case "index":
-      renderPage(indexPage);
+      renderPage(editPage);
       break;
     case "edit":
       renderPage(editPage);
       break;
     default:
-      params.view = "index";
+      params.view = "edit";
       window.location = util.makeQueryParams(params);
       break;
   }

@@ -11,52 +11,14 @@ function(Layer, Annotator, util) {
         idBlock = document.createElement("div");
     idBlock.className = "edit-top-menu-id";
     idBlock.appendChild(
-        document.createTextNode(" ID = " + params.id));
+        document.createTextNode(" ID = " + id));
     navigationMenu.appendChild(navigation);
     navigationMenu.appendChild(idBlock);
     return navigationMenu;
   }
 
-  // Create the page navigation.
-  function createNavigation(params, data) {
-    var id = parseInt(params.id, 10),
-        container = document.createElement("div"),
-        indexAnchor = document.createElement("a"),
-        indexAnchorText = document.createTextNode("Index"),
-        prevAnchorText = document.createTextNode("Prev"),
-        nextAnchorText = document.createTextNode("Next"),
-        prevAnchor, nextAnchor;
-    indexAnchor.href = util.makeQueryParams({ view: "index" });
-    indexAnchor.appendChild(indexAnchorText);
-    if (id > 0) {
-      prevAnchor = document.createElement("a");
-      prevAnchor.appendChild(prevAnchorText);
-      prevAnchor.href = util.makeQueryParams(params, {
-        id: id - 1
-      });
-    }
-    else
-      prevAnchor = prevAnchorText;
-    if (id < data.imageURLs.length - 1) {
-      nextAnchor = document.createElement("a");
-      nextAnchor.appendChild(nextAnchorText);
-      nextAnchor.href = util.makeQueryParams(params, {
-        id: id + 1
-      });
-    }
-    else
-      nextAnchor = nextAnchorText;
-    container.appendChild(prevAnchor);
-    container.appendChild(document.createTextNode(" "));
-    container.appendChild(indexAnchor);
-    container.appendChild(document.createTextNode(" "));
-    container.appendChild(nextAnchor);
-    container.classList.add("edit-top-menu-block");
-    return container;
-  }
-
   // Create the main content block.
-  function createMainDisplay(params, data, annotator, imageLayer) {
+  function createMainDisplay(params, data, annotator, imageLayer, newImg) {
     var container = document.createElement("div"),
         imageContainerSpacer = document.createElement("div"),
         imageContainer = document.createElement("div"),
@@ -64,7 +26,7 @@ function(Layer, Annotator, util) {
         annotatorContainer = document.createElement("div"),
         sidebarSpacer = document.createElement("div"),
         sidebarContainer = document.createElement("div"),
-        sidebar = createSidebar(params, data, annotator);
+        sidebar = createSidebar(params, data, annotator, newImg);
     imageContainerSpacer.className = "edit-image-top-menu";
     imageContainer.className = "edit-image-display";
     imageContainer.appendChild(imageContainerSpacer);
@@ -189,66 +151,44 @@ function(Layer, Annotator, util) {
   }
 
   // Create the sidebar.
-  function createSidebar(params, data, annotator) {
+  function createSidebar(params, data, annotator, newImg) {
     var container = document.createElement("div"),
         labelPicker = createLabelPicker(params, data, annotator),
+        manualParagraph1 = document.createElement("p"),
         spacer1 = document.createElement("div"),
+        exportButton = document.createElement("input"),
+        spacer2 = document.createElement("div"),
         undoButton = document.createElement("div"),
         redoButton = document.createElement("div"),
-        spacer2 = document.createElement("div"),
-        denoiseButton = document.createElement("div"),
         spacer3 = document.createElement("div"),
-        superpixelToolButton = document.createElement("div"),
+        denoiseButton = document.createElement("div"),
         spacer4 = document.createElement("div"),
-        polygonToolButton = document.createElement("div"),
+        tools = document.createElement("div"),
+        /*superpixelToolButton = document.createElement("div"),
         spacer5 = document.createElement("div"),
-        brushToolButton = document.createElement("div"),
+        polygonToolButton = document.createElement("div"),
         spacer6 = document.createElement("div"),
-        manualParagraph = document.createElement("p"),
+        brushToolButton = document.createElement("div"),
         spacer7 = document.createElement("div"),
+        */
         anchor = document.createElement("form"),
-        exportButton = document.createElement("input"),
+        manualParagraph = document.createElement("p"),
         manualText;
-    var fileData = new FormData();
-    var request = new XMLHttpRequest();
-    anchor.appendChild(exportButton);
-    exportButton.type = "submit";
-    exportButton.value = "export";
-    exportButton.className = "edit-sidebar-submit";
-    exportButton.addEventListener("click", function () {
-      BootstrapDialog.confirm({
-          title: 'Export image',
-          message: 'Are you sure you wish to export this image?',
-          type: BootstrapDialog.TYPE_INFO,
-          btnOKLabel: 'Confirm',
-          callback: function(result){
-              if(result) {
-                var filename = (data.annotationURLs) ?
-                    data.annotationURLs[params.id].split(/[\\/]/).pop() :
-                    params.id + ".png";
-                fileData.append("file",annotator.export());
-                fileData.append("filename",filename);
-                fileData.append("username",username);
-                request.open("POST", "https://remote.ivisolutions.ca:12344/uploader");
-                request.send(fileData)
-              };
-            }
-        });
-      });
+
     spacer1.className = "edit-sidebar-spacer";
-    undoButton.className = "edit-sidebar-button";
-    undoButton.appendChild(document.createTextNode("undo"));
+    undoButton.className = "btn btn-default";
+    undoButton.appendChild(document.createTextNode("Undo"));
     undoButton.addEventListener("click", function () { annotator.undo(); });
-    redoButton.className = "edit-sidebar-button";
-    redoButton.appendChild(document.createTextNode("redo"));
+    redoButton.className = "btn btn-default";
+    redoButton.appendChild(document.createTextNode("Redo"));
     redoButton.addEventListener("click", function () { annotator.redo(); });
     spacer2.className = "edit-sidebar-spacer";
-    denoiseButton.className = "edit-sidebar-button";
-    denoiseButton.appendChild(document.createTextNode("denoise"));
+    denoiseButton.className = "btn btn-default";
+    denoiseButton.appendChild(document.createTextNode("Denoise"));
     denoiseButton.addEventListener("click", function () {
       annotator.denoise();
-    });
-    superpixelToolButton.className = "edit-sidebar-button";
+    });/*
+    superpixelToolButton.className = "btn btn-default btn-sm";
     superpixelToolButton.appendChild(
       document.createTextNode("Superpixel tool"));
     superpixelToolButton.addEventListener("click", function () {
@@ -268,7 +208,7 @@ function(Layer, Annotator, util) {
     });
 
     brushToolButton.classList.add("edit-sidebar-button-selected");
-    brushToolButton.className = "edit-sidebar-button";
+    brushToolButton.className = "btn btn-default btn-sm";
     brushToolButton.appendChild(document.createTextNode("Brush tool"));
     brushToolButton.addEventListener("click", function () {
       superpixelToolButton.classList.remove("edit-sidebar-button-selected");
@@ -277,20 +217,63 @@ function(Layer, Annotator, util) {
 
       annotator._setMode("brush");
     });
+*/
+    tools.className = "btn-group btn-group-vertical";
+    tools.setAttribute("data-toggle", "buttons");
 
+    stb = document.createElement("label");
+    stb.className = "btn btn-default btn active";
+    stb.appendChild(document.createTextNode("Superpixel"));
+    stb_input = document.createElement("input");
+    stb_input.setAttribute("type","radio");
+    stb_input.setAttribute("name", "Superpixel");
+    stb_input.setAttribute("id", "option1");
+    stb.appendChild(stb_input);
+    stb.addEventListener("click", function () {
+      annotator._setMode("superpixel")
+    });
+
+    ptb = document.createElement("label");
+    ptb.className = "btn btn-default btn";
+    ptb.appendChild(document.createTextNode("Polygon"));
+    ptb_input = document.createElement("input");
+    ptb_input.setAttribute("type", "radio");
+    ptb_input.setAttribute("name", "Polygon");
+    ptb_input.setAttribute("id", "option2");
+    ptb.appendChild(ptb_input);
+    ptb.addEventListener("click", function () {
+      annotator._setMode("polygon");
+    });
+
+    btb = document.createElement("label");
+    btb.className = "btn btn-default";
+    btb.appendChild(document.createTextNode("Brush"));
+    btb_input = document.createElement("input");
+    btb_input.setAttribute("type", "radio");
+    btb_input.setAttribute("name", "Brush");
+    btb_input.setAttribute("id", "option3");
+    btb.appendChild(btb_input);
+    btb.addEventListener("click", function () {
+      annotator._setMode("brush");
+    });
+
+    tools.appendChild(stb);
+    tools.appendChild(ptb);
+    tools.appendChild(btb);
 
     spacer3.className = "edit-sidebar-spacer";
+    manualParagraph1.appendChild(document.createTextNode("+ : Reassign label"));
     manualParagraph.appendChild(document.createTextNode("ctrl: toggle mode"));
     manualParagraph.appendChild(document.createElement("br"));
     manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("+Superpixel tool:"));
+    manualParagraph.appendChild(document.createTextNode("Superpixel tool:"));
     manualParagraph.appendChild(document.createElement("br"));
     manualParagraph.appendChild(document.createTextNode("left: mark"));
     manualParagraph.appendChild(document.createElement("br"));
     manualParagraph.appendChild(document.createTextNode("right: pick label"));
     manualParagraph.appendChild(document.createElement("br"));
     manualParagraph.appendChild(document.createElement("br"));
-    manualParagraph.appendChild(document.createTextNode("+Polygon tool:"));
+    manualParagraph.appendChild(document.createTextNode("Polygon tool:"));
     manualParagraph.appendChild(document.createElement("br"));
     manualParagraph.appendChild(document.createTextNode("left: draw line"));
     manualParagraph.appendChild(document.createElement("br"));
@@ -298,18 +281,55 @@ function(Layer, Annotator, util) {
     spacer4.className = "edit-sidebar-spacer";
     container.className = "edit-sidebar";
     container.appendChild(labelPicker);
-    container.appendChild(spacer1);
+    container.appendChild(manualParagraph1);
     container.appendChild(undoButton);
     container.appendChild(redoButton);
-    container.appendChild(spacer2);
+    container.appendChild(spacer1);
     container.appendChild(denoiseButton);
+    container.appendChild(spacer2);
+    container.appendChild(tools);
+    //container.appendChild(polygonToolButton);
+    //container.appendChild(superpixelToolButton);
+    //container.appendChild(brushToolButton);
     container.appendChild(spacer3);
-    container.appendChild(polygonToolButton);
-    container.appendChild(superpixelToolButton);
-    container.appendChild(brushToolButton);
-    container.appendChild(manualParagraph);
-    //container.appendChild(spacer4);
     container.appendChild(exportButton);
+    container.appendChild(spacer4);
+    container.appendChild(manualParagraph);
+    var fileData = new FormData();
+    var request = new XMLHttpRequest();
+
+    exportButton.type = "submit";
+    exportButton.value = "Export";
+    exportButton.className = "btn btn-success btn-lg";
+    exportButton.addEventListener("click", function () {
+      BootstrapDialog.confirm({
+          title: 'Export image',
+          message: 'Are you sure you wish to export this image?',
+          type: BootstrapDialog.TYPE_INFO,
+          btnOKLabel: 'Confirm',
+          callback: function(result){
+              if(result) {
+                var filename = (newImg[1]) ?
+                    newImg[1].split(/[\\/]/).pop() :
+                    id + ".png";
+                var x = 0;
+                fileData.append("file",annotator.export());
+                fileData.append("filename",filename);
+                fileData.append("username",username);
+                request.open("POST", "https://remote.ivisolutions.ca:12344/uploader");
+                request.send(fileData)
+
+                request.onreadystatechange = function(){
+                  if (request.readyState == 4)
+                    if (request.status == 200)
+                      location.reload();
+                      x = 1;
+                };
+              };
+
+            }
+        });
+      });
     return container;
   }
 
@@ -341,9 +361,9 @@ function(Layer, Annotator, util) {
     pickButton.appendChild(popupButton);
     pickButton.appendChild(popupContainer);
     pickButton.id = "label-" + index + "-button";
-    pickButton.className = "edit-sidebar-button";
+    pickButton.className = "edit-sidebar-label-button";
     pickButton.addEventListener("click", function () {
-      var className = "edit-sidebar-button-selected";
+      var className = "edit-sidebar-label-button-selected";
       annotator.currentLabel = index;
       var selectedElements = document.getElementsByClassName(className);
       for (var i = 0; i < selectedElements.length; ++i)
@@ -393,12 +413,12 @@ function(Layer, Annotator, util) {
   // Create the label picker button.
   function createLabelPicker(params, data, annotator) {
     var container = document.createElement("div");
-    container.className = "edit-sidebar-label-picker";
+    container.className = "edit-sidebar-label-picker-tab";
     for (var i = 0; i < data.labels.length; ++i) {
       var labelButton = createLabelButton(data, data.labels[i], i, annotator);
       if (i === 0) {
         annotator.currentLabel = 0;
-        labelButton.classList.add("edit-sidebar-button-selected");
+        labelButton.classList.add("edit-sidebar-label-button");
       }
       container.appendChild(labelButton);
     }
@@ -460,41 +480,40 @@ function(Layer, Annotator, util) {
       return (s=s.replace(/^\?/,'&').match(re)) ? s=s[1] : s='';
   }
 
+  function load_new_img() {
+    var fileURL = new FormData();
+    var request = new XMLHttpRequest();
+    var x = 0;
+    var newURL = 'no image';
+    fileURL.append("URL", "annotationURL")
+    request.open("POST", "https://remote.ivisolutions.ca:12344/load_new_img", false);
+    request.send(fileURL)
+    if(request.status === 200) {
+        newURL = request.responseText;
+        if (newURL != 'no image'){
+          x = 1;
+          return newURL;
+        }
+    };
+  }
 
   // Entry point.
   function render(data, params) {
-    var id = parseInt(params.id, 10);
-    if (isNaN(id))
-      throw("Invalid id");
-    var annotator = new Annotator(data.imageURLs[id], {
+    var id = parseInt(1, 10);
+
+    var newImg = load_new_img()
+    var newImg = newImg.split(":");
+    console.log("Image is")
+    console.log(newImg[0])
+    console.log(newImg[1])
+
+    var annotator = new Annotator(newImg[0], {
           width: (params.width || 480),
           height: (params.height || 360),
           colormap: data.colormap,
           superpixelOptions: { method: "slic", regionSize: 25 },
           onload: function () {
-
-            if (data.annotationURLs){
-              var fileURL = new FormData();
-              var request = new XMLHttpRequest();
-              var x = 0;
-              var newURL = 'no image';
-              fileURL.append("URL", data.annotationURLs[id])
-              request.open("POST", "https://remote.ivisolutions.ca:12344/updater");
-              request.send(fileURL)
-
-              request.onreadystatechange = function(){
-                if (request.readyState == 4)
-                  if (request.status == 200)
-                    newURL = request.responseText;
-                    if (newURL != 'no image')
-                      annotator.import(newURL);
-                    x = 1;
-              };
-            }
-
-
-            //if (data.annotationURLs)
-            //  annotator.import(data.annotationURLs[id]);
+            annotator.import(newImg[1]);
             annotator.hide("boundary");
             boundaryFlash();
           },
@@ -514,15 +533,16 @@ function(Layer, Annotator, util) {
           },
           onmousemove: highlightLabel
         }),
-        imageLayer = new Layer(data.imageURLs[id], {
+        imageLayer = new Layer(newImg[0], {
           width: (params.width || 480),
           height: (params.height || 360)
         });
-    document.body.appendChild(createNavigationMenu(params, data, annotator));
+    //document.body.appendChild(createNavigationMenu(params, data, annotator));
     document.body.appendChild(createMainDisplay(params,
                                                 data,
                                                 annotator,
-                                                imageLayer));
+                                                imageLayer,
+                                                newImg));
   }
 
   return render;

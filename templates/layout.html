@@ -41,7 +41,7 @@
             <script src="{{ url_for('static', filename='js/ros_connection.js') }}"></script>
         {% endblock includes %}
 
-        
+
 
     </head>
 
@@ -82,10 +82,10 @@
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav nav-pills nav-stacked" id="menu">
                     {{ format_sidebar('Home', 'home', 'home') }}
-                    <!--{{ format_sidebar('Dataset', 'facetime-video', 'surveillance') }}-->
                     {{ format_sidebar('Annotator', 'edit', 'annotator') }}
-                    {{ format_sidebar('Logs', 'search', 'logs') }}
                     {% if current_user.is_authenticated and current_user.is_admin() %}
+                        {{ format_sidebar('Dataset', 'th', 'dataset') }}
+                        {{ format_sidebar('Logs', 'search', 'logs') }}
                         {{ format_sidebar('Manage Users', 'tasks', 'manage_users') }}
 
 
