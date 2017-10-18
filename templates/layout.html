@@ -21,7 +21,7 @@
 
             {# Custom CSS #}
             <link rel="stylesheet" href="{{ url_for('static', filename='css/simple-sidebar.css') }}">
-            <link rel="stylesheet" href="{{ url_for('static', filename='css/biobot.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/annotator.css') }}">
             <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-dialog.min.css') }}">
 
 
@@ -34,11 +34,6 @@
             <script src="{{ url_for('static', filename='js/eventemitter2.js') }}"></script>
             <script src="{{ url_for('static', filename='js/roslib.js') }}"></script>
             <script src="{{ url_for('static', filename='js/bootstrap-dialog.min.js') }}"></script>
-            <script>
-                var ros_host = "{{conf.rosbridge_host}}";
-                var ros_port = "{{conf.rosbridge_port}}";
-            </script>
-            <script src="{{ url_for('static', filename='js/ros_connection.js') }}"></script>
         {% endblock includes %}
 
 

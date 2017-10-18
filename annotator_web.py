@@ -34,9 +34,6 @@ import os
 import time
 import glob
 
-
-import biobot_schema
-
 from flask_cors import CORS
 
 curr_annotated_img = []
@@ -60,41 +57,13 @@ def admin_required(func):
         return func(*args, **kwargs)
     return decorated_function
 
-def valid_protocol(protocol):
-    """Verify if the requested biological protocol exists."""
-    if protocol in client.database_names() and protocol.startswith('protocol'):
-        return True
-    else:
-        flash("Protocol {0} does not exist".format(protocol), 'warning')
-        return False
-
-# Color functions used for BCA
-def closest_color(requested_color):
-    """Find the closest color name from an 8 bits RGB tuple."""
-    min_colors = {}
-    for key, name in webcolors.css21_hex_to_names.items():
-        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
-        rd = (r_c - requested_color[0]) ** 2
-        gd = (g_c - requested_color[1]) ** 2
-        bd = (b_c - requested_color[2]) ** 2
-        min_colors[(rd + gd + bd)] = name
-    return min_colors[min(min_colors.keys())]
-
-def get_color_name(requested_color):
-    """Get the exact or closest color name of an 8 bit RGB tuple."""
-    try:
-        color_name = webcolors.rgb_to_name(requested_color)
-    except ValueError:
-        color_name = closest_color(requested_color)
-    return color_name
-
 # Load default configuration from local file
 with open('config.json') as config:
     conf = argparse.Namespace(**json.load(config))
 
 # Argument parser strings
-app_description = "BioBot Website Application\n\n" \
-        "All information can be found at https://github.com/biobotus.\n" \
+app_description = "annotator Website Application\n\n" \
+        "All information can be found at https://github.com/annotatorus.\n" \
         "Modify file 'config.json' to edit the application's configuration.\n" \
         "There are other command line arguments that can be used:"
 
@@ -117,8 +86,8 @@ conf.__dict__.update(args.__dict__)
 
 # Get MongoDB Database Client
 client = pymongo.MongoClient()
-biobot = client['biobot']
-fs = GridFS(biobot)
+annotator = client['annotator']
+fs = GridFS(annotator)
 
 # Validate MongoDB is started, else exit
 try:
@@ -139,14 +108,12 @@ ros_pid = None
 
 socketio = SocketIO(app)
 
-
-
 @socketio.on('disconnect')
 def disconnect_user():
     print('DISCONNECTING USER')
-#    user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+#    user_logs = list(annotator.logs.find().skip((annotator.logs).count() - 1))
 #    user = user_logs[-1]
-#    biobot.logs.update_one(user, {'$set' : { 'stop_time' : time.time()}})
+#    annotator.logs.update_one(user, {'$set' : { 'stop_time' : time.time()}})
     logout_user()
 #    session.pop(app.secret_key, None)
 
@@ -155,7 +122,7 @@ class User(UserMixin):
     """User Class making DB-stored parameters accessible from HTML templates."""
     def __init__(self, username):
         self.username = username
-        user = biobot.credentials.find_one({'username': username})
+        user = annotator.credentials.find_one({'username': username})
         self.admin = user['admin']
         self.nb_images = user['nb_images']
 
@@ -185,18 +152,18 @@ def login():
         next_page = request.args.get('next')
         username = request.form['username']
         password = request.form['password']
-        user = biobot.credentials.find_one({'username': username})
+        user = annotator.credentials.find_one({'username': username})
         if user and check_password(user['password'], password):
             if user['active']:  # Inactived users should not be able to log in
                 login_user(User(username))
-                biobot.credentials.update_one(user, {'$set':
+                annotator.credentials.update_one(user, {'$set':
                                               {'last_login' : time.time()}})
 
                 # If an admin logs in and there is at least one inactived user, show it
-                if user['admin'] and biobot.credentials.find_one({'active': False}):
+                if user['admin'] and annotator.credentials.find_one({'active': False}):
                     flash('At least one user account has to be activated', 'info')
                     return redirect(url_for('manage_users'))
-                biobot.logs.insert_one({'start_time' : time.time(),
+                annotator.logs.insert_one({'start_time' : time.time(),
                                         'username' : username,
                                         'stop_time' : 0,
                                         'nb_images' : 0})
@@ -214,11 +181,11 @@ def login():
 @login_required
 def logout():
 
-    user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+    user_logs = list(annotator.logs.find().skip((annotator.logs).count() - 1))
 
     user = user_logs[-1]
 
-    biobot.logs.update_one(user, {'$set' : { 'stop_time' : time.time()}})
+    annotator.logs.update_one(user, {'$set' : { 'stop_time' : time.time()}})
     logout_user()
     return redirect(url_for('home'))
 
@@ -243,7 +210,7 @@ def create_account():
             flash('Invalid username (letters, numbers and underscores only)', 'danger')
             return render_template('create_account.html')
 
-        user = biobot.credentials.find_one({'username': username})
+        user = annotator.credentials.find_one({'username': username})
         if user or not username:  # Check if username is not empty or already taken
             flash('Username not available', 'danger')
             return render_template('create_account.html')
@@ -252,13 +219,13 @@ def create_account():
         admin = False
 
         # If this is the first user to register, make it active and admin
-        if not biobot.credentials.find_one():
+        if not annotator.credentials.find_one():
             active = True
             admin = True
             flash('First account created, activated and is administrator, congratulations!', 'success')
 
         # Create a new user account
-        biobot.credentials.insert_one({'username': username,
+        annotator.credentials.insert_one({'username': username,
                                      'password': hash_password(password),
                                      'active': active,
                                      'nb_images' : 0,
@@ -276,14 +243,14 @@ def change_password():
         old_password = request.form['old_password']
         new_password = request.form['new_password']
 
-        user = biobot.credentials.find_one({'username': username})
+        user = annotator.credentials.find_one({'username': username})
         if user and check_password(user['password'], old_password):
             if not new_password:
                 flash('Password cannot be empty', 'danger')
                 return render_template('change_password.html')
 
             # Modify password
-            biobot.credentials.update_one(user, {'$set': {
+            annotator.credentials.update_one(user, {'$set': {
                                           'password': hash_password(new_password)}})
             flash('Password changed successfully', 'success')
             return redirect(url_for('login'))
@@ -294,40 +261,6 @@ def change_password():
 
     else:
         return render_template('change_password.html')
-
-def ros_thread():
-    """Run shell command defined as 'roslaunch' in config file to start ROS."""
-    global ros_pid
-    try:
-        popen = subprocess.Popen(conf.roslaunch.split())
-        ros_pid = popen.pid
-        return_code = popen.wait()
-        if return_code:
-            print("subprocess.CalledProcessError: Command '{0}' returned non-zero exit status {1}".format(conf.roslaunch, return_code))
-    finally:
-        ros_pid = None
-
-@app.route('/ros_status')
-@login_required
-@admin_required
-def ros_status():
-    return render_template('ros_status.html', pid=ros_pid)
-
-@app.route('/ros_start')
-@login_required
-@admin_required
-def ros_start():
-    if not ros_pid:
-        threading.Thread(target=ros_thread).start()
-    return redirect(url_for('ros_status'))
-
-@app.route('/ros_stop')
-@login_required
-@admin_required
-def ros_stop():
-    if ros_pid:
-        subprocess.call("kill -15 {}".format(ros_pid), shell=True)
-    return redirect(url_for('ros_status'))
 
 @app.route('/home')
 def home():
@@ -379,59 +312,6 @@ def uploader_new_img():
 
         return send
 
-@app.route('/uploader_annot', methods = ['POST'])
-def uploader_annot_file():
-   if request.method == 'POST':
-        pic = request.form['file']
-        username = request.form['username']
-        filename = request.form['filename']
-        #f.save(secure_filename(f.filename))
-
-        up = urllib.parse.urlparse(pic)
-        head, data = up.path.split(',', 1)
-        bits = head.split(';')
-        mime_type = bits[0] if bits[0] else 'text/plain'
-        charset, b64 = 'ASCII', False
-        for bit in bits:
-            if bit.startswith('charset='):
-                charset = bit[8:]
-            elif bit == 'base64':
-                b64 = True
-
-        binary_data = a2b_base64(data)
-        directory = "static/data/annotations/"
-        test = os.listdir( directory )
-
-        for item in test:
-            if item.startswith(filename):
-                os.remove( os.path.join( directory, item ) )
-
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-
-        with open("static/data/annotations/" + filename + "_corrected_" + timestr, 'wb') as f:
-            f.write(binary_data)
-
-        user = biobot.credentials.find_one({'username': username})
-        user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
-
-        user_stats = user_logs[-1]
-        nb_images = user['nb_images']
-        nb_images = nb_images + 1
-        nb_images_stats = user_stats['nb_images']
-        nb_images_stats = nb_images_stats + 1
-        biobot.logs.update_one(user_stats, {'$set': {'nb_images': nb_images_stats}})
-        biobot.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
-
-        searchlabel = os.path.join(directory, "*.png" )
-        fileslabel = glob.glob(searchlabel)
-        fileslabel.sort()
-
-        newImg = fileslabel[0]
-        #print("Sending new ID annot")
-        #print(newImg)
-
-        return newImg
-
 @app.route('/uploader', methods = ['POST'])
 def uploader_file():
    if request.method == 'POST':
@@ -464,16 +344,16 @@ def uploader_file():
         with open("static/data/annotations/" + filename + "_corrected_" + timestr, 'wb') as f:
             f.write(binary_data)
 
-        user = biobot.credentials.find_one({'username': username})
-        user_logs = list(biobot.logs.find().skip((biobot.logs).count() - 1))
+        user = annotator.credentials.find_one({'username': username})
+        user_logs = list(annotator.logs.find().skip((annotator.logs).count() - 1))
 
         user_stats = user_logs[-1]
         nb_images = user['nb_images']
         nb_images = nb_images + 1
         nb_images_stats = user_stats['nb_images']
         nb_images_stats = nb_images_stats + 1
-        biobot.logs.update_one(user_stats, {'$set': {'nb_images': nb_images_stats}})
-        biobot.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
+        annotator.logs.update_one(user_stats, {'$set': {'nb_images': nb_images_stats}})
+        annotator.credentials.update_one(user, {'$set': {'nb_images': nb_images}})
 
         searchlabel = os.path.join(directory, "*.png" )
         fileslabel = glob.glob(searchlabel)
@@ -495,25 +375,9 @@ def updater_URL():
 
         return "static/data/annotations/" + realURL
 
-@app.route('/surveillance')
-@login_required
-def surveillance():
-    return render_template('surveillance.html')
-
-@app.route('/control')
-@login_required
-def control():
-    return render_template('control.html')
-
-@app.route('/protocol_editor')
-@login_required
-def protocol_editor():
-    labware = json.loads(get_schema('labware'))
-    return render_template('protocol_editor.html', labware=labware)
-
 @app.route('/annotator')
 @login_required
-def annotator():
+def annotator_edit():
     username = current_user.get_id()
     return render_template('annotator.html', username=username)
 
@@ -523,101 +387,10 @@ def dataset():
     username = current_user.get_id()
     return render_template('dataset.html', username=username)
 
-@app.route('/deck_editor/send/<b64_deck>')
-@login_required
-def receive_deck(b64_deck):
-    deck = json.loads(base64.b64decode(b64_deck).decode('utf-8'))
-    if deck:  # Prevent empty list that would make insert_many crash
-        for i in range(len(deck)):
-            # Add extra tags used by application
-            deck[i]['source'] = 'deck_editor'
-            deck[i]['uuid'] = uuid.uuid4().hex
-            deck[i]['validated'] = False
-        biobot.deck.insert_many(deck)
-    return redirect(url_for('mapping'))
-
-@app.route('/mapping')
-@login_required
-def mapping():
-    from_editor = list(biobot.deck.find({'source': 'deck_editor', 'validated': False}))
-    from_carto = list(biobot.deck.find({'source': '3d_cartography', 'validated': False}))
-    validated = list(biobot.deck.find({'validated': True}))
-
-    if from_editor or from_carto:
-        flash('Some labware location has to be validated.', 'warning')
-    elif len(validated) == 0:
-        flash('No labware has been found.', 'danger')
-    else:
-        flash('All labware has been validated.', 'success')
-
-    return render_template('mapping.html', from_editor=from_editor,
-                           from_carto=from_carto, validated=validated)
-
-@app.route('/mapping/delete/<uid>')
-@login_required
-def mapping_delete(uid):
-    item = biobot.deck.find_one({'uuid': uid})
-    if item:
-        if item['source'] == '3d_cartography':
-            # Picture of items coming from 3D cartography has to be deleted
-            fs.delete(item['image_id'])
-        biobot.deck.delete_one(item)
-    return redirect(url_for('mapping'))
-
-@app.route('/mapping/modify/<uid>')
-@login_required
-def mapping_modify(uid):
-    biobot.deck.update_one({'uuid': uid}, {'$set': {'validated': False}})
-    return redirect(url_for('mapping'))
-
-@app.route('/mapping/validate/<uid>', methods=['GET', 'POST'])
-@login_required
-def mapping_validate(uid):
-    if request.method == 'GET':
-        item = biobot.deck.find_one({'uuid': uid})
-
-        # Get a list of not tools labware options for item type dropdown menu
-        deck_cursor = biobot.labware.find({'class': {'$ne': 'Tool'}})
-        deck = sorted([item['type'] for item in deck_cursor])
-        options = "<option value={0}>{1}</option>"
-        all_options = [options.format(i, i.replace('_', ' ').title()) for i in deck]
-        labware_options = Markup(''.join(all_options))
-
-        # Get items' approximate coordinates
-        if item['source'] == 'deck_editor':
-            ini = {'x': round(conf.deck_length/100*int(item['col'])+conf.deck_length/200, 3),
-                   'y': round(conf.deck_width/26*(ord(item['row'])-65)+conf.deck_width/52, 3)}
-        else:
-            ini = {'x': round(item['carto_x'], 3),
-                   'y': round(item['carto_y'], 3)}
-
-        return render_template('validate.html', item=item, ini=ini, \
-                               labware_options=labware_options)
-
-    else:
-        if request.form['valid_x'] != '' and request.form['valid_y'] != '' and \
-                                             request.form['valid_z'] != '':
-            try:
-                biobot.deck.update_one({'uuid': uid},
-                                       {'$set': {'type': request.form['type'],
-                                                 'name': request.form['name'],
-                                                 'valid_x': float(request.form['valid_x']),
-                                                 'valid_y': float(request.form['valid_y']),
-                                                 'valid_z': float(request.form['valid_z']),
-                                                 'validated': True}})
-                return redirect(url_for('mapping'))
-            except ValueError:
-                # Could happen if manually entered value is not a float
-                # The manual coordinate entry is only available to admins
-                flash('Coordinates must be floating point numbers only.', 'danger')
-        else:
-            flash('Cannot validate item with empty coordinates', 'danger')
-        return redirect(request.url)
-
 @app.route('/logs')
 @admin_required
 def logs():
-    logs = list(biobot.logs.find())
+    logs = list(annotator.logs.find())
     return render_template('logs.html', logs=logs)
 
 @app.route('/logs/<start_time>')
@@ -639,109 +412,6 @@ def log_highlights(start_time):
                            protocol=protocol, json_protocol=json_protocol, \
                            started=started, done=done, db=db)
 
-@app.route('/logs/<protocol>/steps')
-def log_steps(protocol):
-    if not valid_protocol(protocol):
-        return redirect(url_for('logs'))
-
-    db = client[protocol]
-    steps = list(db.steps.find())
-    return render_template('log_steps.html', active='Steps', protocol=protocol, \
-                           steps=steps, db=db)
-
-@app.route('/logs/<protocol>/bca')
-@app.route('/logs/<protocol>/bca/step/<int:step>')
-def log_bca(protocol, step=None):
-    if not valid_protocol(protocol):
-        return redirect(url_for('logs'))
-
-    db = client[protocol]
-    colonies = list(db.colonies.find({'operation': 'analysis'}))
-
-    if not colonies:
-        flash("No bacterial colonies was found for protocol {0}".format(protocol), 'warning')
-        return redirect("/logs/{0}".format(protocol))
-
-    df = pd.DataFrame(colonies)
-    steps = sorted(df.step.unique())
-    if step is None:
-        # If no step is entered, return first
-        # step for which there was an analysis in the protocol
-        return redirect("{0}/step/{1}".format(request.url, steps[0]))
-
-    current_colonies = list(db.colonies.find({'step': step, 'operation': 'analysis'}))
-
-    # Add closest color names and retrieve list of unique colors
-    df = pd.DataFrame(current_colonies)
-    df['color_text'] = df.color.apply(webcolors.hex_to_rgb).apply(get_color_name)
-    colors = list(df.color_text.unique())
-
-    # Convert back DataFrame to list of dictionnaries
-    current_colonies = [x.to_dict() for _, x in df.iterrows()]
-
-    # Information about pictures to display in the page
-    pictures = [{
-                    'title': 'Raw',
-                    'description': 'Raw picture of the Petri dish',
-                    'filename': "raw_{}.jpg".format(step)
-                },{
-                    'title': 'Analysis',
-                    'description': 'Highlighted colonies have been characterized',
-                    'filename': "analysis_{}.jpg".format(step)
-                }]
-
-    return render_template('log_bca.html', active='BCA', protocol=protocol, \
-                           steps=steps, current=step, colonies=current_colonies, \
-                           colors=colors, db=db, pictures=pictures)
-
-@app.route('/logs/<protocol>/picking/<pick_num>')
-@app.route('/logs/<protocol>/picking/<pick_num>/step/<int:step>')
-def log_picking(protocol, pick_num, step=None):
-    if not valid_protocol(protocol):
-        return redirect(url_for('logs'))
-
-    db = client[protocol]
-    colonies = list(db.colonies.find({'operation': pick_num}))
-
-    if not colonies:
-        flash("No bacterial colonies was found for protocol {0}".format(protocol), 'warning')
-        return redirect("/logs/{0}".format(protocol))
-
-    steps = sorted(pd.DataFrame(colonies).step.unique())
-    if step is None:
-        # If no step is entered, return first
-        # step for which there was an analysis in the protocol
-        return redirect("{0}/step/{1}".format(request.url, steps[0]))
-
-    current_colonies = list(db.colonies.find({'step': step, 'operation': pick_num}))
-
-    # Add closest color names and retrieve list of unique colors
-    df = pd.DataFrame(current_colonies)
-    df['color_text'] = df.color.apply(webcolors.hex_to_rgb).apply(get_color_name)
-    colors = list(df.color_text.unique())
-
-    # Convert back DataFrame to list of dictionnaries
-    current_colonies = [x.to_dict() for _, x in df.iterrows()]
-
-    # Get picking criterias
-    characteristics = db.picking.find_one({'step': step, 'pick_num': pick_num})
-
-    # Information about pictures to display in the page
-    pictures = [{
-                    'title': 'Raw',
-                    'description': 'Raw picture of the Petri dish',
-                    'filename': "raw_{}.jpg".format(step)
-                },{
-                    'title': 'Colony Picking',
-                    'description': 'Highlighted colonies have been selected for picking',
-                    'filename': "{}_{}.jpg".format(pick_num, step)
-                }]
-
-    return render_template('log_picking.html', active='BCA', protocol=protocol, \
-                           steps=steps, current=step, colonies=current_colonies, \
-                           colors=colors, db=db, pictures=pictures,
-                           characteristics=characteristics, pick_num=pick_num)
-
 @app.route('/logs/delete/<id>')
 @login_required
 @admin_required
@@ -749,13 +419,13 @@ def delete_logs(id):
 
     # Delete all data from current protocol
     print('DELETING THE LOG')
-    test = biobot.logs.find()
+    test = annotator.logs.find()
     print(test)
-    test_list = list(biobot.logs.find())
+    test_list = list(annotator.logs.find())
     print(test_list)
-    one = biobot.test_list.find({'_id' : id})
+    one = annotator.test_list.find({'_id' : id})
     print(one)
-    biobot.logs.remove({})
+    annotator.logs.remove({})
 
     flash("Entry {0} deleted successfully".format(id), 'info')
     return redirect(url_for('logs'))
@@ -764,7 +434,7 @@ def delete_logs(id):
 @login_required
 @admin_required
 def manage_users():
-    user_list = list(biobot.credentials.find())
+    user_list = list(annotator.credentials.find())
     return render_template('manage_users.html', users=user_list)
 
 @app.route('/manage_users/activate/<username>')
@@ -772,9 +442,9 @@ def manage_users():
 @admin_required
 def activate_user(username):
     """Activate a user account."""
-    user = biobot.credentials.find_one({'username': username})
+    user = annotator.credentials.find_one({'username': username})
     if not user['active']:
-        biobot.credentials.update_one(user, {'$set': {'active': True}})
+        annotator.credentials.update_one(user, {'$set': {'active': True}})
         flash("User {0} activated successfully".format(username), 'success')
     else:
         flash("User {0} is already active".format(username), 'warning')
@@ -786,12 +456,12 @@ def activate_user(username):
 @admin_required
 def demote_user(username):
     """Remove admin privileges of another administrator."""
-    user = biobot.credentials.find_one({'username': username})
+    user = annotator.credentials.find_one({'username': username})
     if current_user.get_id() == username:
         flash('Cannot revert yourself to standard user', 'danger')
     elif user:
         if user['admin']:
-            biobot.credentials.update_one(user, {'$set': {'admin': False}})
+            annotator.credentials.update_one(user, {'$set': {'admin': False}})
             flash("User {0} reverted to standard user successfully".format(username), 'info')
         else:
             flash("User {0} is already a standard user".format(username), 'warning')
@@ -805,12 +475,12 @@ def demote_user(username):
 @admin_required
 def promote_user(username):
     """Give admin privileges from a normal user."""
-    user = biobot.credentials.find_one({'username': username})
+    user = annotator.credentials.find_one({'username': username})
     if user:
         if user['admin']:
             flash("User {0} is already an administrator".format(username), 'warning')
         else:
-            biobot.credentials.update_one(user, {'$set': {'admin': True}})
+            annotator.credentials.update_one(user, {'$set': {'admin': True}})
             flash("User {0} promoted to administrator successfully".format(username), 'info')
     else:
         flash("Cannot promote unknown user {0} to administrator".format(username), 'warning')
@@ -822,87 +492,21 @@ def promote_user(username):
 @admin_required
 def delete_user(username):
     """Delete a user account that is not yours."""
-    user = biobot.credentials.find_one({'username': username})
+    user = annotator.credentials.find_one({'username': username})
     if current_user.get_id() == username:
         flash('Cannot delete yourself', 'danger')
     elif user:
-        biobot.credentials.delete_one(user)
+        annotator.credentials.delete_one(user)
         flash("User {0} deleted successfully".format(username), 'info')
     else:
         flash("Cannot delete unknown user {0}".format(username), 'warning')
 
     return redirect(url_for('manage_users'))
 
-@app.route('/manage_labware', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def manage_labware():
-    if request.method == 'POST':
-        # Add a new labware entry
-        item_type = request.form['type'].lower().strip().replace(' ', '_')
-        description = request.form['description']
-        item_class = request.form['class']
-        item = biobot.labware.find_one({'type': item_type})
-        if not item_type:
-            flash('Empty labware item type is invalid', 'danger')
-        elif item:
-            flash("Labware item {0} already exists".format(item_type), 'warning')
-        else:
-            biobot.labware.insert_one({'type': item_type, 'description': description, 'class': item_class})
-            flash("Labware item {0} added successfully".format(item_type), 'success')
-
-    labware_list = list(biobot.labware.find())
-    return render_template('manage_labware.html', labware=labware_list)
-
-@app.route('/manage_labware/delete/<item_type>')
-@login_required
-@admin_required
-def delete_labware(item_type):
-    item = biobot.labware.find_one({'type': item_type})
-    if item:
-        biobot.labware.delete_one(item)
-        flash("Item {0} deleted successfully".format(item_type), 'info')
-    else:
-        flash("Cannot delete unknown item {0}".format(item_type), 'danger')
-
-    return redirect(url_for('manage_labware'))
-
-@app.route('/manage_labware/edit_tools')
-@login_required
-@admin_required
-def edit_tools():
-    # Get tools physical configuration from its config file
-    try:
-        with open('tools_conf.json', 'r') as f:
-            tools = json.load(f)
-    except EnvironmentError:
-        tools = []
-    return render_template('edit_tools.html', tools=Markup(tools))
-
-@app.route('/manage_labware/edit_tools/save/<b64_tools>')
-@login_required
-@admin_required
-def save_tools(b64_tools):
-    # Overwite tools config file with new tools data
-    tools = json.loads(base64.b64decode(b64_tools).decode('utf-8'))
-    with open('tools_conf.json', 'w') as f:
-        json.dump(tools, f)
-    return redirect(url_for('edit_tools'))
-
 @app.route('/bad_permissions')
 def bad_permissions():
     """Function called if a normal user tries to get to an admin reserved page."""
     return render_template('bad_permissions.html')
-
-@app.route('/get/schema/<value>')
-def get_schema(value):
-    """
-    Returns the JSON Schema asked by JavaScript Ajax Request.
-    If schema does not exist, it returns an empty JSON object.
-    """
-
-    schema = biobot_schema.get_schema(value, conf, biobot)
-    return json.dumps(schema)
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -974,7 +578,6 @@ def crossdomain(origin=None, methods=None, headers=None, max_age=21600,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-
 def convert_ts(ts):
     """Convert timestamp to human-readable string"""
     return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d_%H:%M:%S')
@@ -994,39 +597,6 @@ def format_sidebar(name, icon, url):
 
     return Markup(html)
 
-def get_item_picture(filename, tags=""):
-    """Return the picture of the requested deck item. (filenames are uid.jpg)"""
-    image = biobot.deck.find_one({'filename': filename})
-    if image:
-        image_id = image['image_id']
-        img = fs.get(image_id).read()
-        b64data = base64.b64encode(img).decode('utf-8')
-        html = '<img src="data:image/jpeg;base64,{0}" {1}>'.format(b64data, tags)
-    else:
-        html = '<img alt="Image {0} not found" {1}>'.format(filename, tags)
-
-    return Markup(html)
-
-def get_bca_picture(filename, protocol, step, tags=""):
-    """Return the picture of the requested BCA picture, with click download and optional tags."""
-    image = biobot.bca_images.find_one({'protocol': protocol, 'step': step, 'filename': filename})
-    if image:
-        image_id = image['image_id']
-        try:
-            img = fs.get(image_id).read()
-            b64data = base64.b64encode(img).decode('utf-8')
-            img_html = '<img src="data:image/jpeg;base64,{0}" {1}>'.format(b64data, tags)
-            html = '<a href="data:image/jpeg;base64,{0}" download="{1}">{2}</a>'.format(b64data, filename, img_html)
-            return Markup(html)
-
-        except:
-            pass
-    else:
-        pass
-
-    html = '<img alt="Image {0} not found" {1}>'.format(filename, tags)
-    return Markup(html)
-
 # Make some variables and functions available from Jinja2 HTML templates
 app.jinja_env.globals.update(conf=conf,
                              force_type = Markup('onselect="return false" ' \
@@ -1037,9 +607,7 @@ app.jinja_env.globals.update(conf=conf,
                                           'ondrop="return false" ' \
                                           'autocomplete=off'),
                              format_sidebar=format_sidebar,
-                             convert_ts=convert_ts,
-                             get_item_picture=get_item_picture,
-                             get_bca_picture=get_bca_picture)
+                             convert_ts=convert_ts)
 
 # Start the application
 if __name__ == '__main__':

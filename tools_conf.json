@@ -1,1 +1,0 @@
-[{"type": "pipette_s", "offset_z": 0, "offset_y": 0, "offset_x": 0}, {"type": "pipette_m", "offset_z": -16, "offset_y": -93.5, "offset_x": 200}, {"type": "gripper", "offset_z": 54, "offset_y": -123, "offset_x": -55}, {"type": "3d_camera", "offset_z": 0, "offset_y": 0, "offset_x": 0}, {"type": "2d_camera", "offset_z": 5, "offset_y": -198, "offset_x": -20}]

@@ -279,7 +279,7 @@ if (typeof module !== "undefined" && module.exports) {
   });
 }
 
-// BioBot Edit
+// annotator Edit
 function get_date_string() {
     var date = new Date();
     var year = date.getFullYear();
