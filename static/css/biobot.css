@@ -182,7 +182,7 @@ button.eStop:hover {
   position: relative;
   background-color: #eee;
   border-radius: 5px;
-  border: 0.5px solid black;
+  border: 0.5px solid #aaa;
 }
 .edit-sidebar-label-button {
   position: relative;
