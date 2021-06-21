@@ -4,7 +4,7 @@ import cv2
 import glob
 import numpy as np
 
-path_annotator = '/home/deepblack/Seg_Annotator/static/data/'
+path_annotator = '/home/jonathan/Seg_Annotator/static/data/'
 searchannot = os.path.join( path_annotator , "annotations" , "*.png_corrected_*" )
 fileannot = glob.glob(searchannot)
 fileannot.sort()

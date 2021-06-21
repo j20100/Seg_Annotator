@@ -1,17 +1,17 @@
-{# Main IVI Annotator layout page #}
+{# Main Annotator layout page #}
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
         {# Title #}
-        <title>IVI Annotator</title>
+        <title>Annotator</title>
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
-        {# IVI Icon #}
-        <link rel="shortcut icon" href="{{ url_for('static', filename='img/logoIvi.png') }}">
+        {# Introlab Icon #}
+        <link rel="shortcut icon" href="{{ url_for('static', filename='img/introlab.png') }}">
         <link rel="preload" href="{{ url_for('static', filename='data/example.json') }}">
 
         {% block includes %}
@@ -48,7 +48,7 @@
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" id="menu-toggle">
                     <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
                 </button>
-                <a class="navbar-brand" href="/"><p><img src="{{ url_for('static', filename='img/logoIvi.png') }}" alt="Logo IVI" height="40" width="16"> <span style="color:#000; font-weight: bold;">IVI</span> Annotator</p></a>
+                <a class="navbar-brand" href="/"><p><img src="{{ url_for('static', filename='img/introlab.png') }}" alt="Logo Introlab" height="40" width="40"> <span style="color:#000; font-weight: bold;"></span> Annotator</p></a>
             </div> {# navbar-header#}
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">

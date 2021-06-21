@@ -2,6 +2,7 @@
 import json
 import os
 import glob
+from PIL import Image
 
 
 def sortKeyFunc(s):
@@ -10,7 +11,7 @@ def sortKeyFunc(s):
     s=k[0].split('_')
     return int(s[2])
 
-path_annotator = '/home/deepblack/Seg_Annotator/static/data/'
+path_annotator = '/home/jonathan/Seg_Annotator/static/data/'
 searchimg = os.path.join( path_annotator , "images" , "*.png" )
 filename = glob.glob(searchimg)
 filename.sort(key=sortKeyFunc)
@@ -24,28 +25,15 @@ for i in range(len(filename)):
     fileimg.append(nameimg)
     fileannot.append(nameannot)
 
+    #if not os.path.isfile('/home/jonathan/Seg_Annotator'+nameannot):
+    #    im = Image.open('/home/jonathan/Seg_Annotator'+nameimg)
+    #    image = Image.new('RGB', im.size)
+    #    image.save('/home/jonathan/Seg_Annotator'+nameannot)
 
 data = {'labels':[
-  "road",
-  "sidewalk",
-  "building",
-  "lanemark",
-  "fence",
-  "pole",
-  "trafficlight",
-  "trafficsign",
-  "vegetation",
-  "terrain",
-  "sky",
-  "person",
-  "rider",
-  "car",
-  "truck",
-  "bus",
-  "snow",
-  "motorcycle",
-  "bicycle",
-  "void"
+  "void",
+  "bean",
+  "notabean"
 ],
 "imageURLs": fileimg,
 "annotationURLs": fileannot

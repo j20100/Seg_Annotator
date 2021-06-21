@@ -6,34 +6,13 @@ import numpy as np
 
 
 #For annotator
-road = [0,0,0]
-sidewalk = [0,0,1]
-building = [0,0,2]
-wall = [0,0,3]
-fence = [0,0,4]
-pole = [0,0,5]
-trafficlight = [0,0,6]
-trafficsign = [0,0,7]
-vegetation = [0,0,8]
-terrain = [0,0,9]
-sky = [0,0,10]
-person = [0,0,11]
-rider = [0,0,12]
-car = [0,0,13]
-truck = [0,0,14]
-bus = [0,0,15]
-train = [0,0,16]
-motorcycle = [0,0,17]
-bicycle = [0,0,18]
-void = [0,0,19]
+void = [0,0,0]
+bean = [0,0,1]
+notabean = [0,0,2]
 
+label_colours = np.array([void, bean, notabean])
 
-label_colours = np.array([building, pole, trafficsign, vegetation, sky, pole, \
-    rider, car, truck, terrain, sky, person, rider, \
-    motorcycle, truck, bus, train, road, bicycle, void])
-
-
-path_annotator = '/home/deepblack/Seg_Annotator/static/data/'
+path_annotator = '/home/jonathan/Seg_Annotator/static/data/'
 searchannot = os.path.join( path_annotator , "annotations" , "*.png_corrected_*" )
 fileannot = glob.glob(searchannot)
 fileannot.sort()

@@ -9,7 +9,7 @@ from flask import Flask, Markup, Response, abort, escape, flash, redirect, \
                   render_template, request, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, \
                         login_user, logout_user
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 from functools import wraps
 from gridfs import GridFS
 from jinja2 import evalcontextfilter
@@ -63,7 +63,7 @@ with open('config.json') as config:
 
 # Argument parser strings
 app_description = "annotator Website Application\n\n" \
-        "All information can be found at https://github.com/annotatorus.\n" \
+        "All information can be found at https://github.com/seg_annotator.\n" \
         "Modify file 'config.json' to edit the application's configuration.\n" \
         "There are other command line arguments that can be used:"
 
@@ -280,18 +280,24 @@ def uploader_new_img():
         directory = "static/data/annotations/"
 
         searchlabel = os.path.join(directory, "*.png" )
+
+        with open('/home/jonathan/Seg_Annotator/static/data/dataset.json') as f:
+            data = json.load(f)
+
+        print(data)
+
         fileslabel = glob.glob(searchlabel)
         fileslabel.sort(key=sortKeyFunc)
 
         i = 0
-        #print("Doin the currently annotated img now")
-        #print(curr_annotated_img)
-        #print(fileslabel[i])
+        print("Doin the currently annotated img now")
+        print(curr_annotated_img)
+        print(fileslabel[i])
         while fileslabel[i] in curr_annotated_img :
             i=i+1
 
-        #print("THIS ONE PASED")
-        #print(fileslabel[i])
+        print("THIS ONE PASSED")
+        print(fileslabel[i])
 
         newImgAnnot = fileslabel[i]
 
